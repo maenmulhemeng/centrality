@@ -1,0 +1,29 @@
+Welcome to Jupyter!
+This repo contains an introduction to Jupyter and IPython.
+
+Outline of some basics:
+
+Notebook Basics
+IPython - beyond plain python
+Markdown Cells
+Rich Display System
+Custom Display logic
+Running a Secure Public Notebook Server
+How Jupyter works to run code in different languages.
+You can also get this tutorial and run it on your laptop:
+
+git clone https://github.com/ipython/ipython-in-depth
+Install IPython and Jupyter:
+
+with conda:
+
+conda install ipython jupyter
+with pip:
+
+# first, always upgrade pip!
+pip install --upgrade pip
+pip install --upgrade ipython jupyter
+Start the notebook in the tutorial directory:
+
+cd ipython-in-depth
+jupyter notebook
