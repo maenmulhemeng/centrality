@@ -1,3 +1,5 @@
+# UMCD
+In the folder of umcd you can find an example of how we can load Cm Connectivity Matrix and how we can apply NetwrokX function on this matrix 
 # centrality
 This is a repository built to allow https://mybinder.org/ to use it
 # Notebook 
