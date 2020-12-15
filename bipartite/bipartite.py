@@ -1,7 +1,7 @@
 import networkx as nx # graph
 import pylab as plt # plotting
-#import testGraph as test
-import hugeGraph as test
+import testGraph as example1
+import hugeGraph as example2 
 from collections import deque # queue
 
 def select_heviest_edge(E):
@@ -35,8 +35,15 @@ def bipartite(G):
 
 if __name__ == '__main__':
     
-    nx.draw(test.G, with_labels=True)
-    plt.savefig('graph.png')
-    match = bipartite(test.G)
+    print("example 1: it is the same graph of page 312 in the book")
+    nx.draw(example1.G, with_labels=True)
+    plt.savefig('example1.png')
+    match = bipartite(example1.G)
+    print(match)
+    print("\n")
+    print("example 2: it is a 68 nodes-based graph. It is in folder data")
+    nx.draw(example2.G, with_labels=True)
+    plt.savefig('example2.png')
+    match = bipartite(example2.G)
     print(match)
  
