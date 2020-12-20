@@ -20,7 +20,7 @@ def remove_incident(G,e):
             G.remove_edge(u,v)
     return G.edges.data('weight', default=1)
 
-def bipartite(G):
+def mwbgm(G):
     Ew = G.edges.data('weight', default=1)
     M = []
     match_weight = 0
@@ -38,7 +38,7 @@ if __name__ == '__main__':
     print("example 1: it is the same graph of page 312 in the book")
     nx.draw(example1.G, with_labels=True)
     plt.savefig('example1.png')
-    match = bipartite(example1.G)
+    match = mwbgm(example1.G)
     print(match)
     print("\n")
     print("example 2: it is a 68 nodes-based graph. It is in folder data")
