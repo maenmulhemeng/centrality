@@ -164,7 +164,7 @@ def subtract_min_from_graph(G,min, horizental_lines, vertical_lines,zeros_of_row
         for i in range(len(zeros_of_rows)):
             v = zeros_of_rows[i]               
 if __name__ == '__main__':
-    
+
     # http://www.hungarianalgorithm.com/examplehungarianalgorithm.php
     G = [[82, 83, 69, 92],
          [77, 37, 49, 92],
@@ -189,11 +189,11 @@ if __name__ == '__main__':
     
     match, zeros_of_rows, zeros_of_columns = subtract_min_from_rows(G, zeros_of_rows, zeros_of_columns ) 
      
-    print(match,zeros_of_rows,zeros_of_columns)
+    # print(match,zeros_of_rows,zeros_of_columns)
     
     match, zeros_of_rows, zeros_of_columns = subtract_min_from_columns(G,zeros_of_rows,zeros_of_columns )        
     
-    print(match,zeros_of_rows,zeros_of_columns)
+    # print(match,zeros_of_rows,zeros_of_columns)
     r = []
     c = []
     
@@ -211,12 +211,12 @@ if __name__ == '__main__':
     
     #print(zeros_of_rows,zeros_of_columns)
     
-    print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
+    # print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
     
     # print(zeros_of_columns)
     min, row_index, column_index = min_in_graph(G,horizental_lines,vertical_lines)
 
-    print("G[ ",row_index," ][ ",column_index," ] = ",min)
+    # print("G[ ",row_index," ][ ",column_index," ] = ",min)
 
     intersections = []
     
@@ -224,12 +224,12 @@ if __name__ == '__main__':
         for j in range(len(vertical_lines)):
             intersections.append((horizental_lines[i],vertical_lines[j]))
     
-    print(intersections)
+    # print(intersections)
 
    
     match, zeros_of_rows,zeros_of_columns = subtract_min_from_graph(G,min,horizental_lines,vertical_lines,zeros_of_rows,zeros_of_columns)
 
-    print(match, zeros_of_rows,zeros_of_columns)        
+    # print(match, zeros_of_rows,zeros_of_columns)        
 
     r = []
     c = []
@@ -246,14 +246,14 @@ if __name__ == '__main__':
         
     number_of_lines,horizental_lines,vertical_lines = cover_zeros(r, c)
 
-    print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
+    # print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
     
     if (number_of_lines == len(G)):
         assignments = optimal_cover_zeros(zeros_of_rows, zeros_of_columns)
-        print("assignemt",assignments)    
+        # print("assignemt",assignments)    
     for k in range(len(assignments)):
         i = assignments[k][0]
         j = assignments[k][1]
-        print(i, " --> ", j, "which is ", G1[i][j])
+        print("worker", i, " has task  ", j, " whose weight is  ", G1[i][j])
  
 
