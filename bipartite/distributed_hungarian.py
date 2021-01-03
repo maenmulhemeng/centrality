@@ -4,7 +4,7 @@ import testGraph as example1
 import hugeGraph as example2 
 import paralleGraph as example3
 from collections import deque # queue
-
+#import numpy as np
 import logging
 import threading
 import queue
@@ -12,9 +12,10 @@ import sys
 
 
 def get_min_from_row(G,row):
+    print(G[row])
     min = sys.maxsize
     index = -1
-    for i in range(len(G)):
+    for i in range(len(G[row])):
         if (min > G[row][i]):
             min = G[row][i]
             index = i
@@ -33,9 +34,9 @@ def get_min_from_column(G,column):
 def subtract_min_from_rows(G,zeros_of_rows,zeros_of_columns ):
     
     for row in range(len(G)):
-        min,_ = get_min_from_row(G,row)
-        for column in range(len(G)):
-            x = G[row][column] - min
+        minimum = min(G[row])     
+        for column in range(len(G[row])):
+            x = G[row][column] - minimum
             # print(x)
             if x == 0 and G[row][column] != 0:
                 # print("row[",row,"] =  ",column)
@@ -44,6 +45,7 @@ def subtract_min_from_rows(G,zeros_of_rows,zeros_of_columns ):
            
             G[row][column] = x
     return G, zeros_of_rows,zeros_of_columns
+
 def find_min_length(a):
     min = sys.maxsize
     min_index = -1
@@ -56,9 +58,11 @@ def find_min_length(a):
 def subtract_min_from_columns(G,zeros_of_rows,zeros_of_columns ):
     
     for column in range(len(G)):
-        min,_ = get_min_from_column(G, column)
-        for row in range(len(G)):
-            x = G[row][column] - min
+        res = [sub[column] for sub in G] 
+        print(res)
+        minimum = min(res)
+        for row in range(len(res)):
+            x = G[row][column] - minimum
             
             if x == 0 and G[row][column]!=0:
                 zeros_of_rows[row].append(column)
@@ -180,80 +184,82 @@ if __name__ == '__main__':
     G1 =  len(G)*[]
     zeros_of_columns = len(G)*[] 
     zeros_of_rows = len(G)*[]
-    
+    que = queue.Queue()
     for i in range(len(G)):
         zeros_of_rows.append([])
         zeros_of_columns.append([])    
         G1.append(G[i].copy())
-    #print(G1)
+    print(G1)
     
-    match, zeros_of_rows, zeros_of_columns = subtract_min_from_rows(G, zeros_of_rows, zeros_of_columns ) 
-     
-    # print(match,zeros_of_rows,zeros_of_columns)
-    
-    match, zeros_of_rows, zeros_of_columns = subtract_min_from_columns(G,zeros_of_rows,zeros_of_columns )        
-    
-    # print(match,zeros_of_rows,zeros_of_columns)
-    r = []
-    c = []
-    
-    for i in range(len(zeros_of_rows)):
-        r.append([])
-        for j in range(len(zeros_of_rows[i])):
-            r[i].append(zeros_of_rows[i][j])
+    p = 2 
+    threads_of_rows = []
+    threads_of_columns = []
+    d = int(len(G) / p)
+    #print(d)
+    for i in range(p):
+        Gk = []
+        #print(i)
+        for k in range(len(G)):
 
-    for i in range(len(zeros_of_columns)):
-        c.append([])
-        for j in range(len(zeros_of_columns[i])):
-            c[i].append(zeros_of_columns[i][j])
-        
-    number_of_lines,horizental_lines,vertical_lines = cover_zeros(r, c)
+            Gk.append([])
+            s = i*d
+            for j in range(d):
+                
+                v = G[k][s+j]
+                #print(v)
+                Gk[k].append(v)
+        print("GK",Gk)
+        x = threading.Thread(target=lambda q, arg1,arg2,arg3: q.put(subtract_min_from_rows(arg1,arg2,arg3)), args=(que, Gk,zeros_of_rows, zeros_of_columns))  
+        threads_of_rows.append(x)
+
+    for i in range(len(threads_of_rows)):
+        print("start threads_of_rows ",i)
+        threads_of_rows[i].start()
+
+    for i in range(len(threads_of_rows)):
+        # print("join")
+        threads_of_rows[i].join()   
+
+    # Check thread's return value
+    result =[]
+  
+    print("Now merge", result)
+    index = 0
+    while not que.empty():
+        returned_variables = que.get()
+        g =  returned_variables[0]
+        print("g",g)
+        for i in range(len(g)):
+            result.append([])
+            for j in range(len(g[i])):
+                result[i].append(g[i][j])
+        #G[index] = g
+    G1 = result
+    print(G1)
+
+    for i in range(p):
+        start = i*d
+        # res = [sub[column] for sub in G] 
+        Gk = G1[0 : len(G1), start: start + d]
+        x = threading.Thread(target=lambda q, arg1,arg2,arg3: q.put(subtract_min_from_columns(arg1,arg2,arg3)), args=(que, Gk,zeros_of_rows, zeros_of_columns))  
+        threads_of_columns.append(x)
+
+    for i in range(len(threads_of_columns)):
+        print("start threads_of_columns ",i)
+        threads_of_columns[i].start()
+
+    for i in range(len(threads_of_columns)):
+        # print("join")
+        threads_of_columns[i].join()      
     
-    # print(zeros_of_rows,zeros_of_columns)
-    
-    # print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
-    
-    # print(zeros_of_columns)
-    min, row_index, column_index = min_in_graph(G,horizental_lines,vertical_lines)
-
-    # print("G[ ",row_index," ][ ",column_index," ] = ",min)
-
-    #intersections = []
-    
-    #for i in range(len(horizental_lines)):
-    #    for j in range(len(vertical_lines)):
-    #        intersections.append((horizental_lines[i],vertical_lines[j]))
-    
-    # print(intersections)
-
-    if (number_of_lines != len(G)):
-        match, zeros_of_rows,zeros_of_columns = subtract_min_from_graph(G,min,horizental_lines,vertical_lines,zeros_of_rows,zeros_of_columns)
-
-        # print(match, zeros_of_rows,zeros_of_columns)        
-
-        r = []
-        c = []
-        
-        for i in range(len(zeros_of_rows)):
-            r.append([])
-            for j in range(len(zeros_of_rows[i])):
-                r[i].append(zeros_of_rows[i][j])
-
-        for i in range(len(zeros_of_columns)):
-            c.append([])
-            for j in range(len(zeros_of_columns[i])):
-                c[i].append(zeros_of_columns[i][j])
-            
-        number_of_lines,horizental_lines,vertical_lines = cover_zeros(r, c)
-
-    # print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
-    
-    if (number_of_lines == len(G)):
-        assignments = assign_tasks_to_workers(zeros_of_rows, zeros_of_columns)
-        print("assignemt",assignments)    
-    for k in range(len(assignments)):
-        i = assignments[k][0]
-        j = assignments[k][1]
-        print("worker", i, " has task  ", j, " whose weight is  ", G1[i][j])
- 
-
+    result = []
+    print("Now merge")
+    index = 0
+    while not que.empty():
+        returned_variables = que.get()
+        g =  returned_variables[0]
+        result = result + g
+        #G[index] = g
+    G1 = result
+    print(G1)
+   
