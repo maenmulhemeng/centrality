@@ -4,7 +4,11 @@ import testGraph as example1
 import hugeGraph as example2 
 import paralleGraph as example3
 from collections import deque # queue
+<<<<<<< HEAD
 import numpy as np
+=======
+#import numpy as np
+>>>>>>> split_columns
 import logging
 import threading
 import queue
@@ -31,6 +35,7 @@ def get_min_from_column(G,column):
             index = i
     return min,index
 
+<<<<<<< HEAD
 def subtract_min_from_rows(G,zeros_of_rows,zeros_of_columns ):
     
     for row in range(len(G)):
@@ -40,6 +45,24 @@ def subtract_min_from_rows(G,zeros_of_rows,zeros_of_columns ):
             # print(x)
             if x == 0 and G[row][column] != 0:
                 # print("row[",row,"] =  ",column)
+=======
+def subtract_min_from_rows(G):
+    zeros_of_rows = []
+    zeros_of_columns = []
+    
+    for i in range(len(G[0])):
+        zeros_of_columns.append([])
+    
+    for row in range(len(G)):
+        minimum = min(G[row])     
+        zeros_of_rows.append([])
+        for column in range(len(G[row])):
+            
+            x = G[row][column] - minimum
+            # print(x)
+            if x == 0 and G[row][column] != 0:
+                #print("row[",row,"] =  ",column)
+>>>>>>> split_columns
                 zeros_of_rows[row].append(column)
                 zeros_of_columns[column].append(row) 
            
@@ -55,9 +78,21 @@ def find_min_length(a):
             min_index = i
     return a[min_index], min_index
 
+<<<<<<< HEAD
 def subtract_min_from_columns(G,zeros_of_rows,zeros_of_columns ):
     
     for column in range(len(G)):
+=======
+def subtract_min_from_columns(G):
+    zeros_of_rows = []
+    zeros_of_columns = []
+    
+    for i in range(len(G)):
+        zeros_of_rows.append([])
+    #print("len",len(G))
+    for column in range(len(G[0])):
+        zeros_of_columns.append([])
+>>>>>>> split_columns
         res = [sub[column] for sub in G] 
         print(res)
         minimum = min(res)
@@ -65,6 +100,10 @@ def subtract_min_from_columns(G,zeros_of_rows,zeros_of_columns ):
             x = G[row][column] - minimum
             
             if x == 0 and G[row][column]!=0:
+<<<<<<< HEAD
+=======
+                #print("row[",row,"] =  ",column)
+>>>>>>> split_columns
                 zeros_of_rows[row].append(column)
                 zeros_of_columns[column].append(row) 
             G[row][column] = x
@@ -170,6 +209,7 @@ def subtract_min_from_graph(G,min, horizental_lines, vertical_lines,zeros_of_row
 if __name__ == '__main__':
 
     # http://www.hungarianalgorithm.com/examplehungarianalgorithm.php
+<<<<<<< HEAD
     G = np.array([[82, 83, 69, 92],
          [77, 37, 49, 92],
          [11, 69, 5, 86],
@@ -181,20 +221,41 @@ if __name__ == '__main__':
     #     [19, 22, 90, 11, 28, 4],
     #     [1, 30, 113, 14, 28, 86],
     #     [60, 70, 170, 28, 68, 104]]    
+=======
+    G = [[82, 83, 69, 92],
+         [77, 37, 49, 92],
+         [11, 69, 5, 86],
+         [ 8,  9, 98, 23]] 
+    # https://github.com/benchaplin/hungarian-algorithm
+    G = [[22, 14, 120, 21, 4, 51],
+         [19, 12, 172, 21, 28, 43],
+         [161, 122, 2, 50, 128, 39],
+         [19, 22, 90, 11, 28, 4],
+         [1, 30, 113, 14, 28, 86],
+         [60, 70, 170, 28, 68, 104]]    
+>>>>>>> split_columns
     G1 =  len(G)*[]
     zeros_of_columns = len(G)*[] 
     zeros_of_rows = len(G)*[]
     que = queue.Queue()
     for i in range(len(G)):
+<<<<<<< HEAD
         zeros_of_rows.append([])
         zeros_of_columns.append([])    
         G1.append(G[i].copy())
     #print(G1)
+=======
+        #zeros_of_rows.append([])
+        zeros_of_columns.append([])    
+        G1.append(G[i].copy())
+    print(G1)
+>>>>>>> split_columns
     
     p = 2 
     threads_of_rows = []
     threads_of_columns = []
     d = int(len(G) / p)
+<<<<<<< HEAD
     for i in range(p):
         start = i*d
         Gk = G[start : start + d]
@@ -204,6 +265,19 @@ if __name__ == '__main__':
 
     for i in range(len(threads_of_rows)):
         print("start threads_of_rows ",i)
+=======
+    #print(d)
+    
+    for i in range(p):
+        start = i*d
+        Gk = G1[start : start + d]
+        #print(Gk)
+        x = threading.Thread(target=lambda q, arg1: q.put(subtract_min_from_rows(arg1)), args=(que, Gk))  
+        threads_of_rows.append(x)
+
+    for i in range(len(threads_of_rows)):
+        #print("start threads_of_rows ",i)
+>>>>>>> split_columns
         threads_of_rows[i].start()
 
     for i in range(len(threads_of_rows)):
@@ -211,15 +285,23 @@ if __name__ == '__main__':
         threads_of_rows[i].join()   
 
     # Check thread's return value
+<<<<<<< HEAD
     result = np.array([])
     for x in range(len(G)):
         np.append(result,x)
     
     print("Now merge", result)
+=======
+    result =[]
+   
+    
+    print("Now merge rows")
+>>>>>>> split_columns
     index = 0
     while not que.empty():
         returned_variables = que.get()
         g =  returned_variables[0]
+<<<<<<< HEAD
         result = np.concatenate((result, g))
         #G[index] = g
     G1 = result
@@ -250,4 +332,143 @@ if __name__ == '__main__':
         #G[index] = g
     G1 = result
     print(G1)
+=======
+        r = returned_variables[1]
+        c = returned_variables[2]
+        #print("r",r)
+        #print("c", c)
+        
+
+        zeros_of_rows = zeros_of_rows + r
+        #print("zers", zeros_of_columns)
+        for i in range(len(c)):
+            for j in range(len(c[i])):
+                zeros_of_columns[i].append( c[i][j] + (index*d) )
+        index = index + 1   
+        result = result + g
+        #G[index] = g
+    G1 = result
+    print(G1, zeros_of_rows, zeros_of_columns)
+    #print(zeros_of_rows)
+    #rint(zeros_of_columns)
+    for i in range(p):
+        Gk = []
+        #print(i)
+        for k in range(len(G1)):
+
+            Gk.append([])
+            s = i*d
+            for j in range(d):
+                
+                v = G1[k][s+j]
+                #print(v)
+                Gk[k].append(v)
+        #print("GK",Gk)
+        x = threading.Thread(target=lambda q, arg1: q.put(subtract_min_from_columns(arg1)), args=(que, Gk))  
+        threads_of_columns.append(x)
+
+    for i in range(len(threads_of_columns)):
+        #print("start threads_of_columns ",i)
+        threads_of_columns[i].start()
+    #threads_of_columns[1].start()
+    #threads_of_columns[0].join()
+
+    for i in range(len(threads_of_columns)):
+        #print("join")
+        threads_of_columns[i].join()      
+    
+    result = []
+    print("Now merge columns")
+    index = 0
+    for k in range(len(G1)):
+        result.append([])
+   
+    while not que.empty():
+        returned_variables = que.get()
+        g =  returned_variables[0]
+        r =  returned_variables[1]
+        c =  returned_variables[2]
+        #print("r",r)
+        #print("c", c)
+        #print("zeros of rows",zeros_of_rows)
+        #print("zeros of columns",zeros_of_columns)
+        #print("g",g)
+        for i in range(len(g)):
+            
+            for j in range(len(g[i])):
+                result[i].append(g[i][j])
+        for i in range(len(c)):
+            for j in range(len(c[i])):
+                zeros_of_columns[i+(index*d)].append(c[i][j])
+        
+        for i in range(len(r)):
+            for j in range(len(r[i])):
+               # print("asa ",r[i][j], "i ", i, "j ", j, "index ", index)
+                zeros_of_rows[i].append(r[i][j] + (index*d))
+        index = index + 1
+    print(result, zeros_of_rows, zeros_of_columns)
+    G1 = result
+    #print(G1)
+
+    for i in range(len(zeros_of_rows)):
+        r.append([])
+        for j in range(len(zeros_of_rows[i])):
+            r[i].append(zeros_of_rows[i][j])
+
+    for i in range(len(zeros_of_columns)):
+        c.append([])
+        for j in range(len(zeros_of_columns[i])):
+            c[i].append(zeros_of_columns[i][j])
+        
+    number_of_lines,horizental_lines,vertical_lines = cover_zeros(r, c)
+    
+    # print(zeros_of_rows,zeros_of_columns)
+    
+    # print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
+    
+    # print(zeros_of_columns)
+    min, row_index, column_index = min_in_graph(G1,horizental_lines,vertical_lines)
+
+    # print("G[ ",row_index," ][ ",column_index," ] = ",min)
+
+    #intersections = []
+    
+    #for i in range(len(horizental_lines)):
+    #    for j in range(len(vertical_lines)):
+    #        intersections.append((horizental_lines[i],vertical_lines[j]))
+    
+    # print(intersections)
+
+    if (number_of_lines != len(G1)):
+        match, zeros_of_rows,zeros_of_columns = subtract_min_from_graph(G1,min,horizental_lines,vertical_lines,zeros_of_rows,zeros_of_columns)
+
+        # print(match, zeros_of_rows,zeros_of_columns)        
+
+        r = []
+        c = []
+        
+        for i in range(len(zeros_of_rows)):
+            r.append([])
+            for j in range(len(zeros_of_rows[i])):
+                r[i].append(zeros_of_rows[i][j])
+
+        for i in range(len(zeros_of_columns)):
+            c.append([])
+            for j in range(len(zeros_of_columns[i])):
+                c[i].append(zeros_of_columns[i][j])
+            
+        number_of_lines,horizental_lines,vertical_lines = cover_zeros(r, c)
+
+    # print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
+    
+    if (number_of_lines == len(G1)):
+        assignments = assign_tasks_to_workers(zeros_of_rows, zeros_of_columns)
+        print("assignemt",assignments)    
+    for k in range(len(assignments)):
+        i = assignments[k][0]
+        j = assignments[k][1]
+        print("worker", i, " has task  ", j, " whose weight is  ", G[i][j])
+
+   
+>>>>>>> split_columns
    

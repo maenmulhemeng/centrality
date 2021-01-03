@@ -106,7 +106,7 @@ def cover_zeros(zeros_of_rows, zeros_of_columns):
         number_of_lines = number_of_lines + 1   
     return number_of_lines , horizental_lines, vertical_lines
     
-def optimal_cover_zeros(zeros_of_rows, zeros_of_columns):
+def assign_tasks_to_workers(zeros_of_rows, zeros_of_columns):
     zeros_of_rows_p = zeros_of_rows.copy()
     zeros_of_columns_p = zeros_of_columns.copy()
 
@@ -209,7 +209,7 @@ if __name__ == '__main__':
         
     number_of_lines,horizental_lines,vertical_lines = cover_zeros(r, c)
     
-    #print(zeros_of_rows,zeros_of_columns)
+    # print(zeros_of_rows,zeros_of_columns)
     
     # print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
     
@@ -218,39 +218,39 @@ if __name__ == '__main__':
 
     # print("G[ ",row_index," ][ ",column_index," ] = ",min)
 
-    intersections = []
+    #intersections = []
     
-    for i in range(len(horizental_lines)):
-        for j in range(len(vertical_lines)):
-            intersections.append((horizental_lines[i],vertical_lines[j]))
+    #for i in range(len(horizental_lines)):
+    #    for j in range(len(vertical_lines)):
+    #        intersections.append((horizental_lines[i],vertical_lines[j]))
     
     # print(intersections)
 
-   
-    match, zeros_of_rows,zeros_of_columns = subtract_min_from_graph(G,min,horizental_lines,vertical_lines,zeros_of_rows,zeros_of_columns)
+    if (number_of_lines != len(G)):
+        match, zeros_of_rows,zeros_of_columns = subtract_min_from_graph(G,min,horizental_lines,vertical_lines,zeros_of_rows,zeros_of_columns)
 
-    # print(match, zeros_of_rows,zeros_of_columns)        
+        # print(match, zeros_of_rows,zeros_of_columns)        
 
-    r = []
-    c = []
-    
-    for i in range(len(zeros_of_rows)):
-        r.append([])
-        for j in range(len(zeros_of_rows[i])):
-            r[i].append(zeros_of_rows[i][j])
-
-    for i in range(len(zeros_of_columns)):
-        c.append([])
-        for j in range(len(zeros_of_columns[i])):
-            c[i].append(zeros_of_columns[i][j])
+        r = []
+        c = []
         
-    number_of_lines,horizental_lines,vertical_lines = cover_zeros(r, c)
+        for i in range(len(zeros_of_rows)):
+            r.append([])
+            for j in range(len(zeros_of_rows[i])):
+                r[i].append(zeros_of_rows[i][j])
+
+        for i in range(len(zeros_of_columns)):
+            c.append([])
+            for j in range(len(zeros_of_columns[i])):
+                c[i].append(zeros_of_columns[i][j])
+            
+        number_of_lines,horizental_lines,vertical_lines = cover_zeros(r, c)
 
     # print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
     
     if (number_of_lines == len(G)):
-        assignments = optimal_cover_zeros(zeros_of_rows, zeros_of_columns)
-        # print("assignemt",assignments)    
+        assignments = assign_tasks_to_workers(zeros_of_rows, zeros_of_columns)
+        print("assignemt",assignments)    
     for k in range(len(assignments)):
         i = assignments[k][0]
         j = assignments[k][1]
