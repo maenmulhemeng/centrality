@@ -9,7 +9,7 @@ import logging
 import threading
 import queue
 import sys
-
+import time
 
 def get_min_from_row(G,row):
     min = sys.maxsize
@@ -65,7 +65,18 @@ def subtract_min_from_columns(G,zeros_of_rows,zeros_of_columns ):
                 zeros_of_columns[column].append(row) 
             G[row][column] = x
     return G, zeros_of_rows,zeros_of_columns
-
+def validate_zeros(zeros_of_rows, zeros_of_columns):
+    for i in range(len(zeros_of_rows)):
+        for j in range(len(zeros_of_rows[i])):
+            x = zeros_of_rows[i][j]
+            if i  not in zeros_of_columns[x]:
+                return False
+    for i in range(len(zeros_of_columns)):
+        for j in range(len(zeros_of_columns[i])):
+            x = zeros_of_columns[i][j]
+            if i not in zeros_of_rows[x]:
+                return False
+    return True
 def cover_zeros(zeros_of_rows, zeros_of_columns):
     zeros_of_rows_p = zeros_of_rows.copy()
     zeros_of_columns_p = zeros_of_columns.copy()
@@ -83,18 +94,19 @@ def cover_zeros(zeros_of_rows, zeros_of_columns):
         #print(maximum_in_rows)
         #print(maximum_in_columns)
         #print(zeros_of_rows_p,zeros_of_columns_p)
+        #print("-----------------------------------")
         if (len(maximum_in_rows) >= len(maximum_in_columns)):
             horizental_lines.append(index_of_max_in_rows)
             for i in range(len(zeros_of_rows_p[index_of_max_in_rows])):
                 index = zeros_of_rows_p[index_of_max_in_rows][i]
-                zeros_of_columns_p[index].pop()
+                zeros_of_columns_p[index].remove(index_of_max_in_rows)
             zeros_of_rows_p[index_of_max_in_rows] = []
         else:
             vertical_lines.append(index_of_maximum_in_columns)
             for i in range(len(zeros_of_columns_p[index_of_maximum_in_columns])):
                 index = zeros_of_columns_p[index_of_maximum_in_columns][i]
+                zeros_of_rows_p[index].remove(index_of_maximum_in_columns)
                 
-                zeros_of_rows_p[index].pop()
             zeros_of_columns_p[index_of_maximum_in_columns] = []
         maximum_in_rows = max(zeros_of_rows_p, key = lambda x:len(x))
         index_of_max_in_rows = zeros_of_rows_p.index(maximum_in_rows)
@@ -127,7 +139,7 @@ def assign_tasks_to_workers(zeros_of_rows, zeros_of_columns):
         minimum_in_rows , index_of_min_in_rows  = find_min_length(zeros_of_rows_p)
         
         
-    # print(zeros_of_rows_p, zeros_of_columns_p)
+    print(zeros_of_rows_p, zeros_of_columns_p)
     return assignments
 
 def min_in_graph(G, horizental_lines, vertical_lines):
@@ -160,11 +172,9 @@ def subtract_min_from_graph(G,min, horizental_lines, vertical_lines,zeros_of_row
                 G[i][j] = G[i][j] + min
     return G, zeros_of_rows, zeros_of_columns
 
-    def assign(zeros_of_rows,zeros_of_columns):
-        for i in range(len(zeros_of_rows)):
-            v = zeros_of_rows[i]               
+              
 if __name__ == '__main__':
-
+    start_time = time.time()
     # http://www.hungarianalgorithm.com/examplehungarianalgorithm.php
     G = [[82, 83, 69, 92],
          [77, 37, 49, 92],
@@ -176,7 +186,22 @@ if __name__ == '__main__':
          [161, 122, 2, 50, 128, 39],
          [19, 22, 90, 11, 28, 4],
          [1, 30, 113, 14, 28, 86],
-         [60, 70, 170, 28, 68, 104]]    
+         [60, 70, 170, 28, 68, 104]]  
+    G = [[5,	8,	47,	49,	33],
+         [88,	79,	46,	23,	4],
+         [75,	17,	1,	34,	55],
+         [98,	74,	90,	41,	68],
+         [12,	67,	43,	32,	51]]
+    G = [[5,    8,	 47, 49,	33,	 34,  45,	34,	 54,    59],
+         [88,   79,	 46, 23,	4,	 54,  321,  54,	 85,    43],
+         [75,	17,	 1,	 34,	55,	 234, 2,    58,	 654,   59],
+         [98,	74,	 90, 41,	68,	 12,  1,	13,	 466,	52],
+         [12,	67,	 43, 32,	51,	 890, 59,   85,	 76,	37],
+         [890,	90,	 89, 89,	808, 9,   34,	674, 56,	52],
+         [89,	8,	 3,	 890,	34,	 8,	  378,	65,	 85,	36],
+         [323,	123, 49, 959,	49,	 3,	  8,	95,	 36,	74],
+         [3,	2,	 23, 54,	59,	 76,  65,	54,	 559,	5 ],
+         [6,	54,	 45, 95,	59,	 87,  90,	237, 23,	232]]
     G1 =  len(G)*[]
     zeros_of_columns = len(G)*[] 
     zeros_of_rows = len(G)*[]
@@ -190,7 +215,7 @@ if __name__ == '__main__':
     match, zeros_of_rows, zeros_of_columns = subtract_min_from_rows(G, zeros_of_rows, zeros_of_columns ) 
      
     # print(match,zeros_of_rows,zeros_of_columns)
-    
+    print (validate_zeros(zeros_of_rows, zeros_of_columns))
     match, zeros_of_rows, zeros_of_columns = subtract_min_from_columns(G,zeros_of_rows,zeros_of_columns )        
     
     # print(match,zeros_of_rows,zeros_of_columns)
@@ -226,7 +251,7 @@ if __name__ == '__main__':
     
     # print(intersections)
 
-    if (number_of_lines != len(G)):
+    while (number_of_lines != len(G)):
         match, zeros_of_rows,zeros_of_columns = subtract_min_from_graph(G,min,horizental_lines,vertical_lines,zeros_of_rows,zeros_of_columns)
 
         # print(match, zeros_of_rows,zeros_of_columns)        
@@ -246,7 +271,7 @@ if __name__ == '__main__':
             
         number_of_lines,horizental_lines,vertical_lines = cover_zeros(r, c)
 
-    # print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
+        print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
     
     if (number_of_lines == len(G)):
         assignments = assign_tasks_to_workers(zeros_of_rows, zeros_of_columns)
@@ -255,5 +280,6 @@ if __name__ == '__main__':
         i = assignments[k][0]
         j = assignments[k][1]
         print("worker", i, " has task  ", j, " whose weight is  ", G1[i][j])
+    print("--- %s seconds ---" % (time.time() - start_time))
  
 
