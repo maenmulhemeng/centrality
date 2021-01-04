@@ -172,19 +172,13 @@ def min_in_graph(G, horizental_lines, vertical_lines):
 
     return min, min_row_index, min_column_index 
 
-def subtract_min_from_graph(G,min, horizental_lines, vertical_lines):
-    zeros_of_rows = []
-    zeros_of_columns = []
-    zeros_to_remove = []
+def subtract_min_from_graph(G,min, horizental_lines, vertical_lines,zeros_of_rows,zeros_of_columns):
     
     for i in range(len(G)):
-        zeros_of_rows.append([])
-        for j in range(len(G[i])):
-            zeros_of_columns.append([])
-
+        for j in range(len(G)):
             if (G[i][j] > 0 and i not in horizental_lines and j not in vertical_lines):
                  x = G[i][j] - min
-                 
+                 #print(G[i][j])
                  if x == 0 and G[i][j] != 0:
                      #print("row[",i,"] =  ",j)
                      zeros_of_rows[i].append(j)
@@ -192,13 +186,11 @@ def subtract_min_from_graph(G,min, horizental_lines, vertical_lines):
                  G[i][j] = x
             elif i in horizental_lines and j in vertical_lines :
                 if (G[i][j] == 0):
-                    #print("here ", i,j,zeros_of_rows[i],zeros_of_columns[j])
-                    zeros_to_remove.append((i,j))
+                    zeros_of_columns[j].remove(i)
+                    zeros_of_rows[i].remove(j)
                 G[i][j] = G[i][j] + min
-                
-
-    return G, zeros_of_rows, zeros_of_columns,zeros_to_remove
-          
+    return G, zeros_of_rows, zeros_of_columns
+    
 if __name__ == '__main__':
     start_time = time.time()
 
@@ -379,112 +371,13 @@ if __name__ == '__main__':
     number_of_lines,horizental_lines,vertical_lines = cover_zeros(r, c)
     #print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
     while (number_of_lines != len(G1)):
-        # print(zeros_of_rows,zeros_of_columns)
-        
-        # print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
-        
-        # print(zeros_of_columns)
+        min, row_index, column_index = min_in_graph(G,horizental_lines,vertical_lines)
+        # print("G[ ",row_index," ][ ",column_index," ] = ",min)
 
-        threads_for_minimum = []
-        
-        for i in range(p):
-            start = i*d
-            Gk = G1[start : start + d]
-            #print(Gk)
-            h = []
-            for k in range(len(horizental_lines)):
-                if (start <= horizental_lines[k] < start+d):
-                    h.append(horizental_lines[k] - start)
-            #print("h",h,vertical_lines, Gk)
+        match, zeros_of_rows,zeros_of_columns = subtract_min_from_graph(G,min,horizental_lines,vertical_lines,zeros_of_rows,zeros_of_columns)
 
-            x = threading.Thread(target=lambda q, arg1,arg2, arg3: q.put(min_in_graph(arg1,arg2,arg3)), args=(que, Gk,h,vertical_lines))  
-            threads_for_minimum.append(x)
-            
-        #print("find the uncovered minimum")
-        for i in range(len(threads_of_rows)):
-            #print("start threads_of_rows ",i)
-
-            threads_for_minimum[i].start()
-
-        for i in range(len(threads_for_minimum)):
-            # print("join")
-            threads_for_minimum[i].join()   
-        
-        global_minimum, row_index, column_index = sys.maxsize, -1, -1
-        index = 0
-        while not que.empty():
-            returned_variables = que.get()
-            g =  returned_variables[0]
-            r = returned_variables[1]
-            c = returned_variables[2]
-            #print("g",g,r,c)
-            if global_minimum > g:
-                global_minimum = g
-                row_index = r + (index*d)
-                column_index = c
-            index = index +1
-        #print(global_minimum, row_index, column_index)
-        
-        
-        threads_for_subtract_minimum = []
-        #print("subtract the uncovered minimum")
-        for i in range(p):
-            start = i*d
-            Gk = G1[start : start + d]
-            # print(horizental_lines)
-            h = []
-            for k in range(len(horizental_lines)):
-                if (start <= horizental_lines[k] < start+d):
-                    h.append(horizental_lines[k] - start)
-            #print(h)
-            x = threading.Thread(target=lambda q, arg1,arg2, arg3, arg4: q.put(subtract_min_from_graph(arg1,arg2,arg3,arg4)), args=(que, Gk, global_minimum, h ,vertical_lines))  
-            threads_for_subtract_minimum.append(x)
-    
-        for i in range(len(threads_of_rows)):
-            #print("start threads_of_rows ",i)
-
-            threads_for_subtract_minimum[i].start()
-
-        for i in range(len(threads_for_subtract_minimum)):
-            # print("join")
-            threads_for_subtract_minimum[i].join()   
-
-        #print("Now merge rows again")
-        result = []
-        index = 0   
-        
-        while not que.empty():
-            returned_variables = que.get()
-            g =  returned_variables[0]
-
-            r = returned_variables[1]
-            c = returned_variables[2]
-            to_remove = returned_variables[3]
-
-            #print("r",r)
-            #print("c", c)
-            #print(zeros_of_rows)
-            for i in range(len(r)):
-                for j in range(len(r[i])):
-                    #print(r[j][j])
-                    zeros_of_rows[i+(index*d)].append(r[i][j])
-            
-            #print("zers", zeros_of_columns)
-            for i in range(len(c)):
-                for j in range(len(c[i])):
-                    zeros_of_columns[i].append( c[i][j] + (index*d) )
-            for (i,j) in to_remove:
-                #print(to_remove, zeros_of_rows, zeros_of_columns)
-                row_index = i+ (index*d)
-                zeros_of_columns[j].remove(row_index)
-                
-                zeros_of_rows[row_index].remove(j)
-                #print(zeros_of_rows, zeros_of_columns,row_index,j)
-            index = index + 1   
-            result = result + g
-            #G[index] = g
-        G1 = result
-        #print(G1, zeros_of_rows,zeros_of_columns)        
+        #print(match, zeros_of_rows,zeros_of_columns)        
+  
 
         r = []
         c = []

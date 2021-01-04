@@ -237,23 +237,6 @@ if __name__ == '__main__':
             c[i].append(zeros_of_columns[i][j])
         
     number_of_lines,horizental_lines,vertical_lines = cover_zeros(r, c)
-    
-    # print(zeros_of_rows,zeros_of_columns)
-    
-    # print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
-    
-    # print(zeros_of_columns)
-    
-
-    
-
-    #intersections = []
-    
-    #for i in range(len(horizental_lines)):
-    #    for j in range(len(vertical_lines)):
-    #        intersections.append((horizental_lines[i],vertical_lines[j]))
-    
-    # print(intersections)
 
     while (number_of_lines != len(G)):
         min, row_index, column_index = min_in_graph(G,horizental_lines,vertical_lines)
