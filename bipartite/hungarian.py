@@ -133,13 +133,14 @@ def assign_tasks_to_workers(zeros_of_rows, zeros_of_columns):
             c_index = minimum_in_rows[0]
             zeros_of_columns_p[c_index].clear()
             v = zeros_of_rows_p[index_of_min_in_rows].pop()
+            zeros_of_rows_p[index_of_min_in_rows].clear()
             assignments.append( ( index_of_min_in_rows, v ) )
             for j in range(len(zeros_of_rows_p)):
                 zeros_of_rows_p[j] = list(filter(lambda x: x != v, zeros_of_rows_p[j])) 
         minimum_in_rows , index_of_min_in_rows  = find_min_length(zeros_of_rows_p)
         
         
-    print(zeros_of_rows_p, zeros_of_columns_p)
+    #print(zeros_of_rows_p, zeros_of_columns_p)
     return assignments
 
 def min_in_graph(G, horizental_lines, vertical_lines):
@@ -169,6 +170,9 @@ def subtract_min_from_graph(G,min, horizental_lines, vertical_lines,zeros_of_row
                      zeros_of_columns[j].append(i) 
                  G[i][j] = x
             elif i in horizental_lines and j in vertical_lines :
+                if (G[i][j] == 0):
+                    zeros_of_columns[j].remove(i)
+                    zeros_of_rows[i].remove(j)
                 G[i][j] = G[i][j] + min
     return G, zeros_of_rows, zeros_of_columns
 
@@ -215,7 +219,7 @@ if __name__ == '__main__':
     match, zeros_of_rows, zeros_of_columns = subtract_min_from_rows(G, zeros_of_rows, zeros_of_columns ) 
      
     # print(match,zeros_of_rows,zeros_of_columns)
-    print (validate_zeros(zeros_of_rows, zeros_of_columns))
+    #print (validate_zeros(zeros_of_rows, zeros_of_columns))
     match, zeros_of_rows, zeros_of_columns = subtract_min_from_columns(G,zeros_of_rows,zeros_of_columns )        
     
     # print(match,zeros_of_rows,zeros_of_columns)
@@ -239,9 +243,9 @@ if __name__ == '__main__':
     # print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
     
     # print(zeros_of_columns)
-    min, row_index, column_index = min_in_graph(G,horizental_lines,vertical_lines)
+    
 
-    # print("G[ ",row_index," ][ ",column_index," ] = ",min)
+    
 
     #intersections = []
     
@@ -252,9 +256,12 @@ if __name__ == '__main__':
     # print(intersections)
 
     while (number_of_lines != len(G)):
+        min, row_index, column_index = min_in_graph(G,horizental_lines,vertical_lines)
+        # print("G[ ",row_index," ][ ",column_index," ] = ",min)
+
         match, zeros_of_rows,zeros_of_columns = subtract_min_from_graph(G,min,horizental_lines,vertical_lines,zeros_of_rows,zeros_of_columns)
 
-        # print(match, zeros_of_rows,zeros_of_columns)        
+        #print(match, zeros_of_rows,zeros_of_columns)        
 
         r = []
         c = []
@@ -271,7 +278,7 @@ if __name__ == '__main__':
             
         number_of_lines,horizental_lines,vertical_lines = cover_zeros(r, c)
 
-        print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
+        #print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
     
     if (number_of_lines == len(G)):
         assignments = assign_tasks_to_workers(zeros_of_rows, zeros_of_columns)

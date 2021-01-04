@@ -102,11 +102,11 @@ def cover_zeros(zeros_of_rows, zeros_of_columns):
     
     horizental_lines = []
     vertical_lines = []
-    print("start")
+    #print("start")
     while (maximum_in_rows != [] and maximum_in_columns != []):
-        print(index_of_max_in_rows, maximum_in_rows, index_of_maximum_in_columns, maximum_in_columns)
+        #print(index_of_max_in_rows, maximum_in_rows, index_of_maximum_in_columns, maximum_in_columns)
         
-        print(maximum_in_rows,maximum_in_columns)
+        #print(maximum_in_rows,maximum_in_columns)
         if (len(maximum_in_rows) >= len(maximum_in_columns)):
             horizental_lines.append(index_of_max_in_rows)
             for i in range(len(zeros_of_rows_p[index_of_max_in_rows])):
@@ -136,10 +136,10 @@ def assign_tasks_to_workers(zeros_of_rows, zeros_of_columns):
     assignments = []
    
     minimum_in_rows , index_of_min_in_rows  = find_min_length(zeros_of_rows_p)
-    print(zeros_of_rows_p, zeros_of_columns_p)
+    #print(zeros_of_rows_p, zeros_of_columns_p)
     # remove the rows that have one zeros
     while (index_of_min_in_rows != -1):
-        print(index_of_min_in_rows)
+        #print(index_of_min_in_rows)
         # print(zeros_of_rows_p)
         if (len(minimum_in_rows) > 0):
             c_index = minimum_in_rows[0]
@@ -147,7 +147,7 @@ def assign_tasks_to_workers(zeros_of_rows, zeros_of_columns):
             v = zeros_of_rows_p[index_of_min_in_rows].pop()
             zeros_of_rows_p[index_of_min_in_rows].clear()
             assignments.append( ( index_of_min_in_rows, v ) )
-            print(zeros_of_rows_p)
+            #print(zeros_of_rows_p)
             for j in range(len(zeros_of_rows_p)):
                 zeros_of_rows_p[j] = list(filter(lambda x: x != v, zeros_of_rows_p[j])) 
         minimum_in_rows , index_of_min_in_rows  = find_min_length(zeros_of_rows_p)
@@ -163,7 +163,7 @@ def min_in_graph(G, horizental_lines, vertical_lines):
     min_column_index = -1
     for i in range(len(G)):
         for j in range(len(G[i])):
-            print(G[i][j],i,j,horizental_lines,vertical_lines)
+            #print(G[i][j],i,j,horizental_lines,vertical_lines)
             if ((0 < G[i][j] < min)  and (i not in horizental_lines) and (j not in vertical_lines) ):
                 min = G[i][j]
                 min_row_index = i
@@ -192,7 +192,7 @@ def subtract_min_from_graph(G,min, horizental_lines, vertical_lines):
                  G[i][j] = x
             elif i in horizental_lines and j in vertical_lines :
                 if (G[i][j] == 0):
-                    print("here ", i,j,zeros_of_rows[i],zeros_of_columns[j])
+                    #print("here ", i,j,zeros_of_rows[i],zeros_of_columns[j])
                     zeros_to_remove.append((i,j))
                 G[i][j] = G[i][j] + min
                 
@@ -287,8 +287,8 @@ if __name__ == '__main__':
 
         r = returned_variables[1]
         c = returned_variables[2]
-        print("r",r)
-        print("c", c)
+        #print("r",r)
+        #print("c", c)
         
 
         zeros_of_rows = zeros_of_rows + r
@@ -296,14 +296,14 @@ if __name__ == '__main__':
         for i in range(len(c)):
             for j in range(len(c[i])):
                 
-                print(i,j,c[i][j],index,d,c[i][j] + (index*d) )
+                #print(i,j,c[i][j],index,d,c[i][j] + (index*d) )
                 zeros_of_columns[i].append( c[i][j] + (index*d) )
         index = index + 1   
         result = result + g
         #G[index] = g
     
     G1 = result
-    print(G1, zeros_of_rows, zeros_of_columns)
+    #print(G1, zeros_of_rows, zeros_of_columns)
     #print(zeros_of_rows)
     #rint(zeros_of_columns)
     for i in range(p):
@@ -377,7 +377,7 @@ if __name__ == '__main__':
             c[i].append(zeros_of_columns[i][j])
       
     number_of_lines,horizental_lines,vertical_lines = cover_zeros(r, c)
-    print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
+    #print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
     while (number_of_lines != len(G1)):
         # print(zeros_of_rows,zeros_of_columns)
         
@@ -395,7 +395,7 @@ if __name__ == '__main__':
             for k in range(len(horizental_lines)):
                 if (start <= horizental_lines[k] < start+d):
                     h.append(horizental_lines[k] - start)
-            print("h",h,vertical_lines, Gk)
+            #print("h",h,vertical_lines, Gk)
 
             x = threading.Thread(target=lambda q, arg1,arg2, arg3: q.put(min_in_graph(arg1,arg2,arg3)), args=(que, Gk,h,vertical_lines))  
             threads_for_minimum.append(x)
@@ -417,7 +417,7 @@ if __name__ == '__main__':
             g =  returned_variables[0]
             r = returned_variables[1]
             c = returned_variables[2]
-            print("g",g,r,c)
+            #print("g",g,r,c)
             if global_minimum > g:
                 global_minimum = g
                 row_index = r + (index*d)
@@ -474,12 +474,12 @@ if __name__ == '__main__':
                 for j in range(len(c[i])):
                     zeros_of_columns[i].append( c[i][j] + (index*d) )
             for (i,j) in to_remove:
-                print(to_remove, zeros_of_rows, zeros_of_columns)
+                #print(to_remove, zeros_of_rows, zeros_of_columns)
                 row_index = i+ (index*d)
                 zeros_of_columns[j].remove(row_index)
                 
                 zeros_of_rows[row_index].remove(j)
-                print(zeros_of_rows, zeros_of_columns,row_index,j)
+                #print(zeros_of_rows, zeros_of_columns,row_index,j)
             index = index + 1   
             result = result + g
             #G[index] = g
@@ -498,10 +498,10 @@ if __name__ == '__main__':
             c.append([])
             for j in range(len(zeros_of_columns[i])):
                 c[i].append(zeros_of_columns[i][j])
-        print(G1)      
+        #print(G1)      
         number_of_lines,horizental_lines,vertical_lines = cover_zeros(r, c)
         #print(G1)
-        print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
+        #print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
     
     if (number_of_lines == len(G1)):
         assignments = assign_tasks_to_workers(zeros_of_rows, zeros_of_columns)
