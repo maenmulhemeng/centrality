@@ -271,7 +271,11 @@ if __name__ == '__main__':
          [323,	123, 49, 959,	49,	 3,	  8,	95,	 36,	74],
          [3,	2,	 23, 54,	59,	 76,  65,	54,	 559,	5 ],
          [6,	54,	 45, 95,	59,	 87,  90,	237, 23,	232]]
-    sequential_hungarain(G)    
+    assignments = sequential_hungarain(G)  
+    for k in range(len(assignments)):
+        i = assignments[k][0]
+        j = assignments[k][1]
+        print("worker", i, " has task  ", j, " whose weight is  ", G[i][j])
     print("--- %s seconds ---" % (time.time() - start_time))
  
 

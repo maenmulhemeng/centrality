@@ -365,11 +365,9 @@ def distributed_hungarian(G):
     if (number_of_lines == len(G1)):
         assignments = assign_tasks_to_workers(zeros_of_rows, zeros_of_columns)
         #print("assignemt",assignments)    
-    for k in range(len(assignments)):
-        i = assignments[k][0]
-        j = assignments[k][1]
-        #print("worker", i, " has task  ", j, " whose weight is  ", G[i][j])
+    
     return assignments
+
 if __name__ == '__main__':
     start_time = time.time()
 
@@ -405,5 +403,9 @@ if __name__ == '__main__':
          [3,	2,	 23, 54,	59,	 76,  65,	54,	 559,	5 ],
          [6,	54,	 45, 95,	59,	 87,  90,	237, 23,	232]]
      
-    distributed_hungarian(G)
+    assignments = distributed_hungarian(G)
+    for k in range(len(assignments)):
+        i = assignments[k][0]
+        j = assignments[k][1]
+        print("worker", i, " has task  ", j, " whose weight is  ", G[i][j])
     print("--- %s seconds ---" % (time.time() - start_time))
