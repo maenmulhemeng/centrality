@@ -99,7 +99,7 @@ def cover_zeros(zeros_of_rows, zeros_of_columns):
             horizental_lines.append(index_of_max_in_rows)
             for i in zeros_of_rows_p[index_of_max_in_rows]: ## O(k)
                 #index = zeros_of_rows_p[index_of_max_in_rows][i]    
-                zeros_of_columns_p[i].pop(index_of_max_in_rows) ## O(k)
+                zeros_of_columns_p[i].pop(index_of_max_in_rows) ## O(1)
             zeros_of_rows_p[index_of_max_in_rows] = {}
         else:
             vertical_lines.append(index_of_maximum_in_columns)
