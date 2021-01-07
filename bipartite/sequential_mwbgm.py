@@ -44,6 +44,6 @@ if __name__ == '__main__':
     print("example 2: it is a 68 nodes-based graph. It is in folder data")
     nx.draw(example2.G, with_labels=True)
     plt.savefig('example2.png')
-    match = bipartite(example2.G)
+    match = mwbgm(example2.G)
     print(match)
  

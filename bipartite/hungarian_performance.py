@@ -1,5 +1,5 @@
-import hungarian as seq
-import distributed_hungarian as dist
+import sequential_hungarian as seq
+import parallel_hungarian as parallel
 import time
 
 if __name__ == '__main__':
@@ -22,20 +22,9 @@ if __name__ == '__main__':
     #     [98,	74,	90,	41,	68],
     #     [12,	67,	43,	32,	51]]
   for i in range(10):
-    G = [[5,    8,	 47, 49,	33,	 34,  45,	34,	 54,    59],
-         [88,   79,	 46, 23,	4,	 54,  321,  54,	 85,    43],
-         [75,	17,	 1,	 34,	55,	 234, 2,    58,	 654,   59],
-         [98,	74,	 90, 41,	68,	 12,  1,	13,	 466,	52],
-         [12,	67,	 43, 32,	51,	 890, 59,   85,	 76,	37],
-         [890,	90,	 89, 89,	808, 9,   34,	674, 56,	52],
-         [89,	8,	 3,	 890,	34,	 8,	  378,	65,	 85,	36],
-         [323,	123, 49, 959,	49,	 3,	  8,	95,	 36,	74],
-         [3,	2,	 23, 54,	59,	 76,  65,	54,	 559,	5 ],
-         [6,	54,	 45, 95,	59,	 87,  90,	237, 23,	232]]
-
-    start_time = time.time()
-    dist.distributed_hungarian(G)
-    dist_time = (time.time() - start_time)
+    print("")   
+    print ("Test No ", i+1)   
+    
 
 
     G = [[5,    8,	 47, 49,	33,	 34,  45,	34,	 54,    59],
@@ -50,15 +39,35 @@ if __name__ == '__main__':
          [6,	54,	 45, 95,	59,	 87,  90,	237, 23,	232]]
     
     start_time = time.time()
-    seq.sequential_hungarain(G)
+    b , performance_of_seq =  seq.sequential_hungarain(G)
     seq_time = (time.time() - start_time)
    
-   
+    G = [[5,    8,	 47, 49,	33,	 34,  45,	34,	 54,    59],
+         [88,   79,	 46, 23,	4,	 54,  321,  54,	 85,    43],
+         [75,	17,	 1,	 34,	55,	 234, 2,    58,	 654,   59],
+         [98,	74,	 90, 41,	68,	 12,  1,	13,	 466,	52],
+         [12,	67,	 43, 32,	51,	 890, 59,   85,	 76,	37],
+         [890,	90,	 89, 89,	808, 9,   34,	674, 56,	52],
+         [89,	8,	 3,	 890,	34,	 8,	  378,	65,	 85,	36],
+         [323,	123, 49, 959,	49,	 3,	  8,	95,	 36,	74],
+         [3,	2,	 23, 54,	59,	 76,  65,	54,	 559,	5 ],
+         [6,	54,	 45, 95,	59,	 87,  90,	237, 23,	232]]
+
+    start_time = time.time()
+    a, performance_of_parallel =  parallel.parallel_hungarian(G, 2)
+    dist_time = (time.time() - start_time)
+
     print("--- Seq time is %s seconds ---" % seq_time)
     
     print("--- Dist time is %s seconds ---" % dist_time)
+    if (dist_time != 0 ):
+     print("--- Performace time is %s  ---" % (seq_time/dist_time))
+    else:
+     print("--- The parallel version time is almose zero") 
 
-    print("--- Performace time is %s  ---" % (seq_time/dist_time))
+    for k in performance_of_parallel:
+        print (k, " in parallel ", performance_of_parallel[k]," in seq " , performance_of_seq[k])
+
 
  
 

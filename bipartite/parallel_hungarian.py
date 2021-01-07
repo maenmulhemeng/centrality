@@ -38,11 +38,11 @@ def subtract_min_from_rows(G):
     zeros_of_columns = []
     
     for i in range(len(G[0])):
-        zeros_of_columns.append([])
+        zeros_of_columns.append({})
     
     for row in range(len(G)):
         minimum = min(G[row])     
-        zeros_of_rows.append([])
+        zeros_of_rows.append({})
         for column in range(len(G[row])):
             
             x = G[row][column] - minimum
@@ -50,8 +50,8 @@ def subtract_min_from_rows(G):
             if x == 0 and G[row][column] != 0:
                 #print("row[",row,"] =  ",column)
 
-                zeros_of_rows[row].append(column)
-                zeros_of_columns[column].append(row) 
+                zeros_of_rows[row][column] = 1
+                zeros_of_columns[column][row] = 1 
            
             G[row][column] = x
     return G, zeros_of_rows,zeros_of_columns
@@ -65,16 +65,15 @@ def find_min_length(a):
             min_index = i
     return a[min_index], min_index
 
-
 def subtract_min_from_columns(G):
     zeros_of_rows = []
     zeros_of_columns = []
     
     for i in range(len(G)):
-        zeros_of_rows.append([])
+        zeros_of_rows.append({})
     #print("len",len(G))
     for column in range(len(G[0])):
-        zeros_of_columns.append([])
+        zeros_of_columns.append({})
 
         res = [sub[column] for sub in G] 
         #print(res)
@@ -84,8 +83,8 @@ def subtract_min_from_columns(G):
             
             if x == 0 and G[row][column]!=0:
                 #print("row[",row,"] =  ",column)
-                zeros_of_rows[row].append(column)
-                zeros_of_columns[column].append(row) 
+                zeros_of_rows[row][column] = 1
+                zeros_of_columns[column][row] = 1 
             G[row][column] = x
     return G, zeros_of_rows,zeros_of_columns
 
@@ -103,22 +102,23 @@ def cover_zeros(zeros_of_rows, zeros_of_columns):
     horizental_lines = []
     vertical_lines = []
     #print("start")
-    while (maximum_in_rows != [] and maximum_in_columns != []):
+    while (maximum_in_rows != {} and maximum_in_columns != {}):
         #print(index_of_max_in_rows, maximum_in_rows, index_of_maximum_in_columns, maximum_in_columns)
         
         #print(maximum_in_rows,maximum_in_columns)
         if (len(maximum_in_rows) >= len(maximum_in_columns)):
             horizental_lines.append(index_of_max_in_rows)
-            for i in range(len(zeros_of_rows_p[index_of_max_in_rows])):
-                index = zeros_of_rows_p[index_of_max_in_rows][i]
-                zeros_of_columns_p[index].remove(index_of_max_in_rows)
-            zeros_of_rows_p[index_of_max_in_rows] = []
+            for i in zeros_of_rows_p[index_of_max_in_rows]:
+                #print(zeros_of_columns_p[i],index_of_max_in_rows)
+                zeros_of_columns_p[i].pop(index_of_max_in_rows) ## O(1)
+            zeros_of_rows_p[index_of_max_in_rows] = {}
         else:
             vertical_lines.append(index_of_maximum_in_columns)
-            for i in range(len(zeros_of_columns_p[index_of_maximum_in_columns])):
-                index = zeros_of_columns_p[index_of_maximum_in_columns][i]
-                zeros_of_rows_p[index].remove(index_of_maximum_in_columns)
-            zeros_of_columns_p[index_of_maximum_in_columns] = []
+            for i in zeros_of_columns_p[index_of_maximum_in_columns]:
+                #index = zeros_of_columns_p[index_of_maximum_in_columns][i]
+                zeros_of_rows_p[i].pop(index_of_maximum_in_columns)
+            zeros_of_columns_p[index_of_maximum_in_columns] = {}
+
         maximum_in_rows = max(zeros_of_rows_p, key = lambda x:len(x))
         index_of_max_in_rows = zeros_of_rows_p.index(maximum_in_rows)
 
@@ -130,30 +130,37 @@ def cover_zeros(zeros_of_rows, zeros_of_columns):
     return number_of_lines , horizental_lines, vertical_lines
     
 def assign_tasks_to_workers(zeros_of_rows, zeros_of_columns):
+    #print(zeros_of_rows,zeros_of_columns)
     zeros_of_rows_p = zeros_of_rows.copy()
     zeros_of_columns_p = zeros_of_columns.copy()
 
     assignments = []
    
     minimum_in_rows , index_of_min_in_rows  = find_min_length(zeros_of_rows_p)
-    #print(zeros_of_rows_p, zeros_of_columns_p)
+    
     # remove the rows that have one zeros
     while (index_of_min_in_rows != -1):
-        #print(index_of_min_in_rows)
-        # print(zeros_of_rows_p)
+        #print(zeros_of_rows_p, minimum_in_rows)
         if (len(minimum_in_rows) > 0):
-            c_index = minimum_in_rows[0]
+            c_index = list(minimum_in_rows.keys())[0]
+            #print("first ", first_element)
+            #c_index = minimum_in_rows[first_element]
             zeros_of_columns_p[c_index].clear()
-            v = zeros_of_rows_p[index_of_min_in_rows].pop()
+            v = zeros_of_rows_p[index_of_min_in_rows].pop(c_index)
             zeros_of_rows_p[index_of_min_in_rows].clear()
-            assignments.append( ( index_of_min_in_rows, v ) )
-            #print(zeros_of_rows_p)
+            assignments.append( ( index_of_min_in_rows, c_index ) )
             for j in range(len(zeros_of_rows_p)):
-                zeros_of_rows_p[j] = list(filter(lambda x: x != v, zeros_of_rows_p[j])) 
+                
+                try:
+                    zeros_of_rows_p[j].pop(c_index)
+                except:
+                    1+1
+                    #print("has no", c_index)
+                #print(zeros_of_rows_p[j],c_index)
         minimum_in_rows , index_of_min_in_rows  = find_min_length(zeros_of_rows_p)
         
         
-    # print(zeros_of_rows_p, zeros_of_columns_p)
+    #print(zeros_of_rows_p, zeros_of_columns_p)
     return assignments
 
 def min_in_graph(G, horizental_lines, vertical_lines):
@@ -163,8 +170,9 @@ def min_in_graph(G, horizental_lines, vertical_lines):
     min_column_index = -1
     for i in range(len(G)):
         for j in range(len(G[i])):
-            #print(G[i][j],i,j,horizental_lines,vertical_lines)
-            if ((0 < G[i][j] < min)  and (i not in horizental_lines) and (j not in vertical_lines) ):
+            
+            if (G[i][j] > 0 and i not in horizental_lines and j not in vertical_lines and min > G[i][j]):
+                #print(G[i][j],i,j,horizental_lines,vertical_lines)
                 min = G[i][j]
                 min_row_index = i
                 min_column_index = j
@@ -181,17 +189,19 @@ def subtract_min_from_graph(G,min, horizental_lines, vertical_lines,zeros_of_row
                  #print(G[i][j])
                  if x == 0 and G[i][j] != 0:
                      #print("row[",i,"] =  ",j)
-                     zeros_of_rows[i].append(j)
-                     zeros_of_columns[j].append(i) 
+                     zeros_of_rows[i][j] = 1
+                     zeros_of_columns[j][i] = 1 
                  G[i][j] = x
             elif i in horizental_lines and j in vertical_lines :
                 if (G[i][j] == 0):
-                    zeros_of_columns[j].remove(i)
-                    zeros_of_rows[i].remove(j)
+                    zeros_of_columns[j].pop(i)
+                    zeros_of_rows[i].pop(j)
                 G[i][j] = G[i][j] + min
     return G, zeros_of_rows, zeros_of_columns
     
-def distributed_hungarian(G):
+def parallel_hungarian(G,p):
+    start_time = time.time()
+    performance = {}
     G1 =  len(G)*[]
     zeros_of_columns = len(G)*[] 
     zeros_of_rows = len(G)*[]
@@ -199,25 +209,28 @@ def distributed_hungarian(G):
     for i in range(len(G)):
 
         #zeros_of_rows.append([])
-        zeros_of_columns.append([])    
+        zeros_of_columns.append({})    
         G1.append(G[i].copy())
     #print(G1)
-
-    
-    p = 2 
     
     threads_of_rows = []
     threads_of_columns = []
-    
+    if (p > len(G)):
+        p = len(G)
+
     d = int(len(G) / p)
     if len(G) % 2 != 0 :
-        print("new thread was added because the dimention of the adjacency matrix is an odd number")
+        #print("new thread was added because the dimention of the adjacency matrix is an odd number")
         p = p +1
     #print(d)
+    performance["init"] = (time.time() - start_time)
+    start_time = time.time()
     
     for i in range(p):
         start = i*d
         Gk = G1[start : start + d]
+        if i + 1 == p:
+            Gk = G1[start : ]
         #print(Gk)
         x = threading.Thread(target=lambda q, arg1: q.put(subtract_min_from_rows(arg1)), args=(que, Gk))  
         threads_of_rows.append(x)
@@ -242,7 +255,6 @@ def distributed_hungarian(G):
     while not que.empty():
         returned_variables = que.get()
         g =  returned_variables[0]
-
         r = returned_variables[1]
         c = returned_variables[2]
         #print("r",r)
@@ -252,26 +264,33 @@ def distributed_hungarian(G):
         zeros_of_rows = zeros_of_rows + r
         #print("zers", zeros_of_columns)
         for i in range(len(c)):
-            for j in range(len(c[i])):
+            for j in c[i]:
                 
                 #print(i,j,c[i][j],index,d,c[i][j] + (index*d) )
-                zeros_of_columns[i].append( c[i][j] + (index*d) )
+                
+                x = j + (index*d)
+                zeros_of_columns[i][x] = 1
         index = index + 1   
         result = result + g
         #G[index] = g
     
     G1 = result
+    performance["subtract_min_from_rows"] = (time.time() - start_time)
+    start_time = time.time()    
     #print(G1, zeros_of_rows, zeros_of_columns)
     #print(zeros_of_rows)
     #rint(zeros_of_columns)
     for i in range(p):
         Gk = []
         #print(i)
+        n = d
+        if i+1 == p:
+            n = len(G1) - (d * i)
+        s = i*d
+        #print(n)
         for k in range(len(G1)):
-
             Gk.append([])
-            s = i*d
-            for j in range(d):
+            for j in range(n):
                 #print(k,s,j)
                 if s+j < len(G1):
                     v = G1[k][s+j]
@@ -312,33 +331,33 @@ def distributed_hungarian(G):
             for j in range(len(g[i])):
                 result[i].append(g[i][j])
         for i in range(len(c)):
-            for j in range(len(c[i])):
-                zeros_of_columns[i+(index*d)].append(c[i][j])
+            for j in c[i]:
+                zeros_of_columns[i+(index*d)][j] =1
         
         for i in range(len(r)):
-            for j in range(len(r[i])):
+            for j in r[i]:
                # print("asa ",r[i][j], "i ", i, "j ", j, "index ", index)
-                zeros_of_rows[i].append(r[i][j] + (index*d))
+                zeros_of_rows[i][ j + (index*d)] = 1
         index = index + 1
     #print(result, zeros_of_rows, zeros_of_columns)
     G1 = result
     #print(G1)
-
+    performance["subtract_min_from_columns"] = (time.time() - start_time)
     for i in range(len(zeros_of_rows)):
-        r.append([])
-        for j in range(len(zeros_of_rows[i])):
-            r[i].append(zeros_of_rows[i][j])
+        r.append({})
+        for j in zeros_of_rows[i]:
+            r[i][j] = 1
 
     for i in range(len(zeros_of_columns)):
-        c.append([])
-        for j in range(len(zeros_of_columns[i])):
-            c[i].append(zeros_of_columns[i][j])
+        c.append({})
+        for j in zeros_of_columns[i]:
+            c[i][j] = 1
       
     number_of_lines,horizental_lines,vertical_lines = cover_zeros(r, c)
     #print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
     while (number_of_lines != len(G1)):
         min, row_index, column_index = min_in_graph(G,horizental_lines,vertical_lines)
-        # print("G[ ",row_index," ][ ",column_index," ] = ",min)
+        #print("G[ ",row_index," ][ ",column_index," ] = ",min)
 
         match, zeros_of_rows,zeros_of_columns = subtract_min_from_graph(G,min,horizental_lines,vertical_lines,zeros_of_rows,zeros_of_columns)
 
@@ -349,14 +368,14 @@ def distributed_hungarian(G):
         c = []
         
         for i in range(len(zeros_of_rows)):
-            r.append([])
-            for j in range(len(zeros_of_rows[i])):
-                r[i].append(zeros_of_rows[i][j])
+            r.append({})
+            for j in zeros_of_rows[i]:
+                r[i][j] = 1
 
         for i in range(len(zeros_of_columns)):
-            c.append([])
-            for j in range(len(zeros_of_columns[i])):
-                c[i].append(zeros_of_columns[i][j])
+            c.append({})
+            for j in zeros_of_columns[i]:
+                c[i][j] = 1
         #print(G1)      
         number_of_lines,horizental_lines,vertical_lines = cover_zeros(r, c)
         #print(G1)
@@ -366,7 +385,7 @@ def distributed_hungarian(G):
         assignments = assign_tasks_to_workers(zeros_of_rows, zeros_of_columns)
         #print("assignemt",assignments)    
     
-    return assignments
+    return assignments , performance
 
 if __name__ == '__main__':
     start_time = time.time()
@@ -403,10 +422,22 @@ if __name__ == '__main__':
          [323,	123, 49, 959,	49,	 3,	  8,	95,	 36,	74],
          [3,	2,	 23, 54,	59,	 76,  65,	54,	 559,	5 ],
          [6,	54,	 45, 95,	59,	 87,  90,	237, 23,	232]]
+    G1 = [[5,    8,	 47, 49,	33,	 34,  45,	34,	 54,    59],
+         [88,   79,	 46, 23,	4,	 54,  321,  54,	 85,    43],
+         [75,	17,	 1,	 34,	55,	 234, 2,    58,	 654,   59],
+         [98,	74,	 90, 41,	68,	 12,  1,	13,	 466,	52],
+         [12,	67,	 43, 32,	51,	 890, 59,   85,	 76,	37],
+         [890,	90,	 89, 89,	808, 9,   34,	674, 56,	52],
+         [89,	8,	 3,	 890,	34,	 8,	  378,	65,	 85,	36],
+         [323,	123, 49, 959,	49,	 3,	  8,	95,	 36,	74],
+         [3,	2,	 23, 54,	59,	 76,  65,	54,	 559,	5 ],
+         [6,	54,	 45, 95,	59,	 87,  90,	237, 23,	232]]
      
-    assignments = distributed_hungarian(G)
+    assignments, performance = parallel_hungarian(G1,2)
     for k in range(len(assignments)):
         i = assignments[k][0]
         j = assignments[k][1]
         print("worker", i, " has task  ", j, " whose weight is  ", G[i][j])
     print("--- %s seconds ---" % (time.time() - start_time))
+    for k in performance:
+        print (k, performance[k])

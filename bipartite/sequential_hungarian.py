@@ -106,8 +106,8 @@ def cover_zeros(zeros_of_rows, zeros_of_columns):
             for i in zeros_of_columns_p[index_of_maximum_in_columns]:
                 #index = zeros_of_columns_p[index_of_maximum_in_columns][i]
                 zeros_of_rows_p[i].pop(index_of_maximum_in_columns)
-                
             zeros_of_columns_p[index_of_maximum_in_columns] = {}
+            
         maximum_in_rows = max(zeros_of_rows_p, key = lambda x:len(x))
         index_of_max_in_rows = zeros_of_rows_p.index(maximum_in_rows)
 
@@ -119,6 +119,7 @@ def cover_zeros(zeros_of_rows, zeros_of_columns):
     return number_of_lines , horizental_lines, vertical_lines
     
 def assign_tasks_to_workers(zeros_of_rows, zeros_of_columns):
+    #print(zeros_of_rows,zeros_of_columns)
     zeros_of_rows_p = zeros_of_rows.copy()
     zeros_of_columns_p = zeros_of_columns.copy()
 
@@ -128,22 +129,23 @@ def assign_tasks_to_workers(zeros_of_rows, zeros_of_columns):
     
     # remove the rows that have one zeros
     while (index_of_min_in_rows != -1):
-        # print(zeros_of_rows_p)
+        #print(zeros_of_rows_p, minimum_in_rows)
         if (len(minimum_in_rows) > 0):
-            
-            first_element = list(minimum_in_rows.keys())[0]
-            c_index = minimum_in_rows[first_element]
+            c_index = list(minimum_in_rows.keys())[0]
+            #print("first ", first_element)
+            #c_index = minimum_in_rows[first_element]
             zeros_of_columns_p[c_index].clear()
-            v = zeros_of_rows_p[index_of_min_in_rows].pop(first_element)
+            v = zeros_of_rows_p[index_of_min_in_rows].pop(c_index)
             zeros_of_rows_p[index_of_min_in_rows].clear()
-            assignments.append( ( index_of_min_in_rows, first_element ) )
+            assignments.append( ( index_of_min_in_rows, c_index ) )
             for j in range(len(zeros_of_rows_p)):
-                #print(zeros_of_rows_p[j],c_index)
+                
                 try:
                     zeros_of_rows_p[j].pop(c_index)
                 except:
                     1+1
                     #print("has no", c_index)
+                #print(zeros_of_rows_p[j],c_index)
         minimum_in_rows , index_of_min_in_rows  = find_min_length(zeros_of_rows_p)
         
         
@@ -184,22 +186,30 @@ def subtract_min_from_graph(G,min, horizental_lines, vertical_lines,zeros_of_row
     return G, zeros_of_rows, zeros_of_columns
 
 def sequential_hungarain(G):
-    G1 =  len(G)*[]
+    start_time = time.time()
+    performance = {}
+    #G1 =  len(G)*[]
     zeros_of_columns = len(G)*[] 
     zeros_of_rows = len(G)*[]
     
     for i in range(len(G)):
         zeros_of_rows.append({})
         zeros_of_columns.append({})    
-        G1.append(G[i].copy())
+        #G1.append(G[i].copy())
     #print(G1)
+    performance["init"] = (time.time() - start_time)
+    start_time = time.time()
     
     match, zeros_of_rows, zeros_of_columns = subtract_min_from_rows(G, zeros_of_rows, zeros_of_columns ) 
-     
+    
+    performance["subtract_min_from_rows"] = (time.time() - start_time)
+    
+    start_time = time.time()
     # print(match,zeros_of_rows,zeros_of_columns)
     #print (validate_zeros(zeros_of_rows, zeros_of_columns))
     match, zeros_of_rows, zeros_of_columns = subtract_min_from_columns(G,zeros_of_rows,zeros_of_columns )        
-    
+    performance["subtract_min_from_columns"] = (time.time() - start_time)
+
     #print(match,zeros_of_rows,zeros_of_columns)
     r = []
     c = []
@@ -218,7 +228,7 @@ def sequential_hungarain(G):
     #print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
     while (number_of_lines != len(G)):
         min, row_index, column_index = min_in_graph(G,horizental_lines,vertical_lines)
-        print("G[ ",row_index," ][ ",column_index," ] = ",min)
+        #print("G[ ",row_index," ][ ",column_index," ] = ",min)
 
         match, zeros_of_rows,zeros_of_columns = subtract_min_from_graph(G,min,horizental_lines,vertical_lines,zeros_of_rows,zeros_of_columns)
 
@@ -239,16 +249,16 @@ def sequential_hungarain(G):
             
         number_of_lines,horizental_lines,vertical_lines = cover_zeros(r, c)
 
-        print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
+        #print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
     
     if (number_of_lines == len(G)):
         assignments = assign_tasks_to_workers(zeros_of_rows, zeros_of_columns)
-        print("assignemt",assignments)    
+        #print("assignemt",assignments)    
     for k in range(len(assignments)):
         i = assignments[k][0]
         j = assignments[k][1]
         #print("worker", i, " has task  ", j, " whose weight is  ", G1[i][j])
-    return assignments
+    return assignments, performance
 if __name__ == '__main__':
     start_time = time.time()
     # http://www.hungarianalgorithm.com/examplehungarianalgorithm.php
@@ -289,12 +299,14 @@ if __name__ == '__main__':
          [3,	2,	 23, 54,	59,	 76,  65,	54,	 559,	5 ],
          [6,	54,	 45, 95,	59,	 87,  90,	237, 23,	232]]
          
-    assignments = sequential_hungarain(G1)  
+    assignments,performance = sequential_hungarain(G1)  
 
     for k in range(len(assignments)):
         i = assignments[k][0]
         j = assignments[k][1]
         print("worker", i, " has task  ", j, " whose weight is  ", G[i][j])
     print("--- %s seconds ---" % (time.time() - start_time))
+    for k in performance:
+        print (k, performance[k])
  
 
