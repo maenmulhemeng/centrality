@@ -276,6 +276,7 @@ def parallel_hungarian(G,p):
     
     G1 = result
     performance["subtract_min_from_rows"] = (time.time() - start_time)
+    
     start_time = time.time()    
     #print(G1, zeros_of_rows, zeros_of_columns)
     #print(zeros_of_rows)

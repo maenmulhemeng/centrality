@@ -54,7 +54,9 @@ if __name__ == '__main__':
          [6,	54,	 45, 95,	59,	 87,  90,	237, 23,	232]]
 
     start_time = time.time()
-    a, performance_of_parallel =  parallel.parallel_hungarian(G, 2)
+    p = 3 
+    print("The number of threads ", p)
+    a, performance_of_parallel =  parallel.parallel_hungarian(G, p)
     dist_time = (time.time() - start_time)
 
     print("--- Seq time is %s seconds ---" % seq_time)
