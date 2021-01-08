@@ -33,16 +33,11 @@ def get_min_from_column(G,column):
     return min,index
 
 
-def subtract_min_from_rows(G):
-    zeros_of_rows = []
-    zeros_of_columns = []
+def subtract_min_from_rows(G, start, d, zeros_of_rows,zeros_of_columns):
     
-    for i in range(len(G[0])):
-        zeros_of_columns.append({})
-    
-    for row in range(len(G)):
+    for row in range(start,start+d):
         minimum = min(G[row])     
-        zeros_of_rows.append({})
+        #zeros_of_rows.append({})
         for column in range(len(G[row])):
             
             x = G[row][column] - minimum
@@ -65,19 +60,13 @@ def find_min_length(a):
             min_index = i
     return a[min_index], min_index
 
-def subtract_min_from_columns(G):
-    zeros_of_rows = []
-    zeros_of_columns = []
-    
-    for i in range(len(G)):
-        zeros_of_rows.append({})
-    #print("len",len(G))
-    for column in range(len(G[0])):
-        zeros_of_columns.append({})
-
+def subtract_min_from_columns(G,start,d,zeros_of_rows,zeros_of_columns):
+    #print(zeros_of_columns)
+    for column in range(start,start+d):
         res = [sub[column] for sub in G] 
         #print(res)
         minimum = min(res)
+        #print(minimum)
         for row in range(len(res)):
             x = G[row][column] - minimum
             
@@ -86,12 +75,14 @@ def subtract_min_from_columns(G):
                 zeros_of_rows[row][column] = 1
                 zeros_of_columns[column][row] = 1 
             G[row][column] = x
+    #print(zeros_of_columns)
     return G, zeros_of_rows,zeros_of_columns
 
-def cover_zeros(zeros_of_rows, zeros_of_columns):
-    zeros_of_rows_p = zeros_of_rows.copy()
-    zeros_of_columns_p = zeros_of_columns.copy()
+def cover_zeros(zeros_of_rows_p, zeros_of_columns_p):
+    #zeros_of_rows_p = zeros_of_rows.copy()
+    #zeros_of_columns_p = zeros_of_columns.copy()
 
+    
     number_of_lines = 0
     maximum_in_rows = max(zeros_of_rows_p, key = lambda x:len(x))
     index_of_max_in_rows = zeros_of_rows_p.index(maximum_in_rows)
@@ -140,11 +131,10 @@ def assign_tasks_to_workers(zeros_of_rows, zeros_of_columns):
     
     # remove the rows that have one zeros
     while (index_of_min_in_rows != -1):
-        #print(zeros_of_rows_p, minimum_in_rows)
+      
         if (len(minimum_in_rows) > 0):
             c_index = list(minimum_in_rows.keys())[0]
-            #print("first ", first_element)
-            #c_index = minimum_in_rows[first_element]
+           
             zeros_of_columns_p[c_index].clear()
             v = zeros_of_rows_p[index_of_min_in_rows].pop(c_index)
             zeros_of_rows_p[index_of_min_in_rows].clear()
@@ -207,8 +197,7 @@ def parallel_hungarian(G,p):
     zeros_of_rows = len(G)*[]
     que = queue.Queue()
     for i in range(len(G)):
-
-        #zeros_of_rows.append([])
+        zeros_of_rows.append({})
         zeros_of_columns.append({})    
         G1.append(G[i].copy())
     #print(G1)
@@ -228,11 +217,13 @@ def parallel_hungarian(G,p):
     
     for i in range(p):
         start = i*d
-        Gk = G1[start : start + d]
+        #Gk = G1[start : start + d]
+        n = d
         if i + 1 == p:
-            Gk = G1[start : ]
+            n = len(G1) - (i * d)
+            #Gk = G1[start : ]
         #print(Gk)
-        x = threading.Thread(target=lambda q, arg1: q.put(subtract_min_from_rows(arg1)), args=(que, Gk))  
+        x = threading.Thread(target=lambda q, arg1,arg2,arg3,arg4,arg5: q.put(subtract_min_from_rows(arg1,arg2,arg3,arg4,arg5)), args=(que, G1,start,n,zeros_of_rows,zeros_of_columns))  
         threads_of_rows.append(x)
 
     for i in range(len(threads_of_rows)):
@@ -244,105 +235,36 @@ def parallel_hungarian(G,p):
         # print("join")
         threads_of_rows[i].join()   
 
-    # Check thread's return value
-
-    result =[]
-   
-    
-    #print("Now merge rows")
-
-    index = 0
-    while not que.empty():
-        returned_variables = que.get()
-        g =  returned_variables[0]
-        r = returned_variables[1]
-        c = returned_variables[2]
-        #print("r",r)
-        #print("c", c)
-        
-
-        zeros_of_rows = zeros_of_rows + r
-        #print("zers", zeros_of_columns)
-        for i in range(len(c)):
-            for j in c[i]:
-                
-                #print(i,j,c[i][j],index,d,c[i][j] + (index*d) )
-                
-                x = j + (index*d)
-                zeros_of_columns[i][x] = 1
-        index = index + 1   
-        result = result + g
-        #G[index] = g
-    
-    G1 = result
+  
+  
     performance["subtract_min_from_rows"] = (time.time() - start_time)
     
     start_time = time.time()    
-    #print(G1, zeros_of_rows, zeros_of_columns)
-    #print(zeros_of_rows)
-    #rint(zeros_of_columns)
+   
     for i in range(p):
-        Gk = []
-        #print(i)
         n = d
         if i+1 == p:
             n = len(G1) - (d * i)
         s = i*d
-        #print(n)
-        for k in range(len(G1)):
-            Gk.append([])
-            for j in range(n):
-                #print(k,s,j)
-                if s+j < len(G1):
-                    v = G1[k][s+j]
-                    #print(v)
-                    Gk[k].append(v)
-        #print("GK",Gk)
-        x = threading.Thread(target=lambda q, arg1: q.put(subtract_min_from_columns(arg1)), args=(que, Gk))  
+       
+        x = threading.Thread(target=lambda q, arg1,arg2,arg3,arg4,arg5: q.put(subtract_min_from_columns(arg1,arg2,arg3,arg4,arg5)), args=(que, G1,s,n,zeros_of_rows,zeros_of_columns))  
         threads_of_columns.append(x)
 
     for i in range(len(threads_of_columns)):
         #print("start threads_of_columns ",i)
         threads_of_columns[i].start()
-    #threads_of_columns[1].start()
-    #threads_of_columns[0].join()
+   
 
     for i in range(len(threads_of_columns)):
         #print("join")
         threads_of_columns[i].join()      
     
-    result = []
-    #print("Now merge columns")
-    index = 0
-    for k in range(len(G1)):
-        result.append([])
     
-    while not que.empty():
-        returned_variables = que.get()
-        g =  returned_variables[0]
-        r =  returned_variables[1]
-        c =  returned_variables[2]
-        #print("r",r)
-        #print("c", c)
-        #print("zeros of rows",zeros_of_rows)
-        #print("zeros of columns",zeros_of_columns)
-        #print("g",g)
-        for i in range(len(g)):
-            
-            for j in range(len(g[i])):
-                result[i].append(g[i][j])
-        for i in range(len(c)):
-            for j in c[i]:
-                zeros_of_columns[i+(index*d)][j] =1
-        
-        for i in range(len(r)):
-            for j in r[i]:
-               # print("asa ",r[i][j], "i ", i, "j ", j, "index ", index)
-                zeros_of_rows[i][ j + (index*d)] = 1
-        index = index + 1
-    #print(result, zeros_of_rows, zeros_of_columns)
-    G1 = result
-    #print(G1)
+    
+   
+    r = []
+    c = []
+   #print(G1,zeros_of_rows,zeros_of_columns)
     performance["subtract_min_from_columns"] = (time.time() - start_time)
     for i in range(len(zeros_of_rows)):
         r.append({})
@@ -353,7 +275,7 @@ def parallel_hungarian(G,p):
         c.append({})
         for j in zeros_of_columns[i]:
             c[i][j] = 1
-      
+    #print(zeros_of_rows,zeros_of_columns)  
     number_of_lines,horizental_lines,vertical_lines = cover_zeros(r, c)
     #print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
     while (number_of_lines != len(G1)):
