@@ -294,7 +294,7 @@ def parallel_hungarian(G,p):
     #print(r,c)
     #print(zeros_of_rows,zeros_of_columns)  
     number_of_lines,horizental_lines,vertical_lines = cover_zeros(r, c)
-    print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
+    #print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
     #print("let's loop")
     while (number_of_lines != len(G)):
         min, row_index, column_index = min_in_graph(G, horizental_lines, vertical_lines)
