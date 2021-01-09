@@ -10,7 +10,7 @@ import threading
 import queue
 import sys
 import time
-
+import huge_matrix as hm
 
 def get_min_from_row(G,row):
     #print(G[row])
@@ -36,10 +36,10 @@ def get_min_from_column(G,column):
 def subtract_min_from_rows(G, start, d, zeros_of_rows,zeros_of_columns):
     
     for row in range(start,start+d):
-        minimum = min(G[row])     
+        minimum,_ = get_min_from_row(G,row) 
         #zeros_of_rows.append({})
         for column in range(len(G[row])):
-            
+            #print(minimum)
             x = G[row][column] - minimum
             # print(x)
             if x == 0 and G[row][column] != 0:
@@ -192,14 +192,14 @@ def subtract_min_from_graph(G,min, horizental_lines, vertical_lines,zeros_of_row
 def parallel_hungarian(G,p):
     start_time = time.time()
     performance = {}
-    G1 =  len(G)*[]
+    #G1 =  len(G)*[]
     zeros_of_columns = len(G)*[] 
     zeros_of_rows = len(G)*[]
     que = queue.Queue()
     for i in range(len(G)):
         zeros_of_rows.append({})
         zeros_of_columns.append({})    
-        G1.append(G[i].copy())
+        #G1.append(G[i].copy())
     #print(G1)
     
     threads_of_rows = []
@@ -215,39 +215,36 @@ def parallel_hungarian(G,p):
     performance["init"] = (time.time() - start_time)
     start_time = time.time()
     
-    for i in range(p):
+    for i in range(p):  # O(p)
         start = i*d
         #Gk = G1[start : start + d]
         n = d
         if i + 1 == p:
-            n = len(G1) - (i * d)
+            n = len(G) - (i * d)
             #Gk = G1[start : ]
         #print(Gk)
-        x = threading.Thread(target=lambda q, arg1,arg2,arg3,arg4,arg5: q.put(subtract_min_from_rows(arg1,arg2,arg3,arg4,arg5)), args=(que, G1,start,n,zeros_of_rows,zeros_of_columns))  
+        x = threading.Thread(target=lambda q, arg1,arg2,arg3,arg4,arg5: q.put(subtract_min_from_rows(arg1,arg2,arg3,arg4,arg5)), args=(que, G,start,n,zeros_of_rows,zeros_of_columns))  
         threads_of_rows.append(x)
-
-    for i in range(len(threads_of_rows)):
+    
+    for i in range(len(threads_of_rows)):  # O(p)
         #print("start threads_of_rows ",i)
 
         threads_of_rows[i].start()
-
+    
     for i in range(len(threads_of_rows)):
         # print("join")
         threads_of_rows[i].join()   
-
-  
-  
+        
     performance["subtract_min_from_rows"] = (time.time() - start_time)
     
     start_time = time.time()    
    
     for i in range(p):
         n = d
-        if i+1 == p:
-            n = len(G1) - (d * i)
         s = i*d
-       
-        x = threading.Thread(target=lambda q, arg1,arg2,arg3,arg4,arg5: q.put(subtract_min_from_columns(arg1,arg2,arg3,arg4,arg5)), args=(que, G1,s,n,zeros_of_rows,zeros_of_columns))  
+        if i+1 == p:
+            n = len(G) - s
+        x = threading.Thread(target=lambda q, arg1,arg2,arg3,arg4,arg5: q.put(subtract_min_from_columns(arg1,arg2,arg3,arg4,arg5)), args=(que, G,s,n,zeros_of_rows,zeros_of_columns))  
         threads_of_columns.append(x)
 
     for i in range(len(threads_of_columns)):
@@ -258,14 +255,13 @@ def parallel_hungarian(G,p):
     for i in range(len(threads_of_columns)):
         #print("join")
         threads_of_columns[i].join()      
-    
-    
-    
-   
+    performance["subtract_min_from_columns"] = (time.time() - start_time)
+
+    start_time = time.time()
     r = []
     c = []
    #print(G1,zeros_of_rows,zeros_of_columns)
-    performance["subtract_min_from_columns"] = (time.time() - start_time)
+    
     for i in range(len(zeros_of_rows)):
         r.append({})
         for j in zeros_of_rows[i]:
@@ -275,10 +271,13 @@ def parallel_hungarian(G,p):
         c.append({})
         for j in zeros_of_columns[i]:
             c[i][j] = 1
+    
+    
     #print(zeros_of_rows,zeros_of_columns)  
     number_of_lines,horizental_lines,vertical_lines = cover_zeros(r, c)
     #print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
-    while (number_of_lines != len(G1)):
+    #print("let's loop")
+    while (number_of_lines != len(G)):
         min, row_index, column_index = min_in_graph(G,horizental_lines,vertical_lines)
         #print("G[ ",row_index," ][ ",column_index," ] = ",min)
 
@@ -304,10 +303,11 @@ def parallel_hungarian(G,p):
         #print(G1)
         #print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
     
-    if (number_of_lines == len(G1)):
+    if (number_of_lines == len(G)):
         assignments = assign_tasks_to_workers(zeros_of_rows, zeros_of_columns)
         #print("assignemt",assignments)    
-    
+    performance["rest"] = (time.time() - start_time)
+
     return assignments , performance
 
 if __name__ == '__main__':
@@ -345,18 +345,16 @@ if __name__ == '__main__':
          [323,	123, 49, 959,	49,	 3,	  8,	95,	 36,	74],
          [3,	2,	 23, 54,	59,	 76,  65,	54,	 559,	5 ],
          [6,	54,	 45, 95,	59,	 87,  90,	237, 23,	232]]
-    G1 = [[5,    8,	 47, 49,	33,	 34,  45,	34,	 54,    59],
-         [88,   79,	 46, 23,	4,	 54,  321,  54,	 85,    43],
-         [75,	17,	 1,	 34,	55,	 234, 2,    58,	 654,   59],
-         [98,	74,	 90, 41,	68,	 12,  1,	13,	 466,	52],
-         [12,	67,	 43, 32,	51,	 890, 59,   85,	 76,	37],
-         [890,	90,	 89, 89,	808, 9,   34,	674, 56,	52],
-         [89,	8,	 3,	 890,	34,	 8,	  378,	65,	 85,	36],
-         [323,	123, 49, 959,	49,	 3,	  8,	95,	 36,	74],
-         [3,	2,	 23, 54,	59,	 76,  65,	54,	 559,	5 ],
-         [6,	54,	 45, 95,	59,	 87,  90,	237, 23,	232]]
-     
-    assignments, performance = parallel_hungarian(G1,2)
+    G1 = []
+    #G = hm.huge_matrix(200,200)
+    for i in range(len(G)):
+        G1.append([])
+        for j in range(len(G[i])):
+            G1[i].append(G[i][j])
+    
+    print("Matrix was copied")
+    assignments, performance = parallel_hungarian(G1,10)
+    #print("let's assign")
     for k in range(len(assignments)):
         i = assignments[k][0]
         j = assignments[k][1]

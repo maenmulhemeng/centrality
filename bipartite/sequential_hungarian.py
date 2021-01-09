@@ -10,6 +10,7 @@ import threading
 import queue
 import sys
 import time
+import huge_matrix as hm
 
 def get_min_from_row(G,row):
     min = sys.maxsize
@@ -210,6 +211,7 @@ def sequential_hungarain(G):
     match, zeros_of_rows, zeros_of_columns = subtract_min_from_columns(G,zeros_of_rows,zeros_of_columns )        
     performance["subtract_min_from_columns"] = (time.time() - start_time)
 
+    start_time = time.time()
     #print(match,zeros_of_rows,zeros_of_columns)
     r = []
     c = []
@@ -254,10 +256,8 @@ def sequential_hungarain(G):
     if (number_of_lines == len(G)):
         assignments = assign_tasks_to_workers(zeros_of_rows, zeros_of_columns)
         #print("assignemt",assignments)    
-    for k in range(len(assignments)):
-        i = assignments[k][0]
-        j = assignments[k][1]
-        #print("worker", i, " has task  ", j, " whose weight is  ", G1[i][j])
+
+    performance["rest"] = (time.time() - start_time)
     return assignments, performance
 if __name__ == '__main__':
     start_time = time.time()
@@ -288,17 +288,14 @@ if __name__ == '__main__':
          [323,	123, 49, 959,	49,	 3,	  8,	95,	 36,	74],
          [3,	2,	 23, 54,	59,	 76,  65,	54,	 559,	5 ],
          [6,	54,	 45, 95,	59,	 87,  90,	237, 23,	232]]
-    G1 = [[5,    8,	 47, 49,	33,	 34,  45,	34,	 54,    59],
-         [88,   79,	 46, 23,	4,	 54,  321,  54,	 85,    43],
-         [75,	17,	 1,	 34,	55,	 234, 2,    58,	 654,   59],
-         [98,	74,	 90, 41,	68,	 12,  1,	13,	 466,	52],
-         [12,	67,	 43, 32,	51,	 890, 59,   85,	 76,	37],
-         [890,	90,	 89, 89,	808, 9,   34,	674, 56,	52],
-         [89,	8,	 3,	 890,	34,	 8,	  378,	65,	 85,	36],
-         [323,	123, 49, 959,	49,	 3,	  8,	95,	 36,	74],
-         [3,	2,	 23, 54,	59,	 76,  65,	54,	 559,	5 ],
-         [6,	54,	 45, 95,	59,	 87,  90,	237, 23,	232]]
-         
+    G1 =[]
+    G = hm.huge_matrix(200,200)
+    for i in range(len(G)):
+        G1.append([])
+        for j in range(len(G[i])):
+            G1[i].append(G[i][j])
+    print("Matrix was copied")
+    
     assignments,performance = sequential_hungarain(G1)  
 
     for k in range(len(assignments)):
