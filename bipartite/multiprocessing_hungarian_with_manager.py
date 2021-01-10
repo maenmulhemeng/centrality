@@ -7,7 +7,6 @@ from collections import deque # queue
 
 
 import multiprocessing as mp
-import numpy as np
 import queue
 import sys
 import time
@@ -35,8 +34,8 @@ def get_min_from_column(G,column):
     return min,index
 
 
-def subtract_min_from_rows(x,shape, start, d, zeros_of_rows,zeros_of_columns):
-    G = np.frombuffer(x, dtype=np.float64).reshape(shape)
+def subtract_min_from_rows(G, start, d, zeros_of_rows,zeros_of_columns):
+    
     for row in range(start,start+d):
         minimum,_ = get_min_from_row(G,row) 
         #print(G[row])
@@ -64,8 +63,7 @@ def find_min_length(a):
             min_index = i
     return a[min_index], min_index
 
-def subtract_min_from_columns(X,shape,start,d,zeros_of_rows,zeros_of_columns):
-    G = np.frombuffer(X, dtype=np.float64).reshape(shape)
+def subtract_min_from_columns(G,start,d,zeros_of_rows,zeros_of_columns):
     #print(zeros_of_columns)
     for column in range(start,start+d):
         res = [sub[column] for sub in G] 
@@ -199,17 +197,6 @@ def subtract_min_from_graph(G,min, horizental_lines, vertical_lines,zeros_of_row
     
 def parallel_hungarian(G,p):
     start_time = time.time()
-
-    # Randomly generate some data
-    
-    data = np.array(G)
-    X_shape = (len(G),len(G))
-    X = mp.RawArray('d', X_shape[0] * X_shape[1])
-    X_np = np.frombuffer(X).reshape(X_shape)
-
-    # Copy data to our shared array.
-    np.copyto(X_np, data)
-
     performance = {}
     #G1 =  len(G)*[]
     manager = mp.Manager()
@@ -235,8 +222,6 @@ def parallel_hungarian(G,p):
         p = p +1
     #print(d)
     performance["init"] = (time.time() - start_time)
-
-
     start_time = time.time()
     
     for i in range(p):  # O(p)
@@ -247,8 +232,8 @@ def parallel_hungarian(G,p):
             n = len(G) - (i * d)
             #Gk = G1[start : ]
         #print(type(G))
-        t = mp.Process(target=subtract_min_from_rows , args=(X,X_shape,start,n,zeros_of_rows,zeros_of_columns))  
-        threads_of_rows.append(t)
+        x = mp.Process(target=subtract_min_from_rows , args=(G,start,n,zeros_of_rows,zeros_of_columns))  
+        threads_of_rows.append(x)
     
     for i in range(len(threads_of_rows)):  # O(p)
         #print("start threads_of_rows ",i)
@@ -270,8 +255,8 @@ def parallel_hungarian(G,p):
         s = i*d
         if i+1 == p:
             n = len(G) - s
-        t = mp.Process(target=subtract_min_from_columns, args=(X,X_shape,s,n,zeros_of_rows,zeros_of_columns))  
-        threads_of_columns.append(t)
+        x = mp.Process(target=subtract_min_from_columns, args=(G,s,n,zeros_of_rows,zeros_of_columns))  
+        threads_of_columns.append(x)
 
     for i in range(len(threads_of_columns)):
         #print("start threads_of_columns ",i)
@@ -309,7 +294,7 @@ def parallel_hungarian(G,p):
     #print(r,c)
     #print(zeros_of_rows,zeros_of_columns)  
     number_of_lines,horizental_lines,vertical_lines = cover_zeros(r, c)
-    print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
+    #print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
     #print("let's loop")
     while (number_of_lines != len(G)):
         min, row_index, column_index = min_in_graph(G, horizental_lines, vertical_lines)
@@ -394,16 +379,19 @@ if __name__ == '__main__':
     
     #G = hm.huge_matrix(100,100)
 
-    
+    manager = mp.Manager()
+    arr = manager.list()
+
     #print(arr)
     for i in range(len(G)):
         G1.append([])
+        arr.append(manager.list(G[i]))           
         for j in range(len(G[i])):
             G1[i].append(G[i][j])
             
     
     print("Matrix was copied")
-    assignments, performance = parallel_hungarian(G1,2)
+    assignments, performance = parallel_hungarian(arr,5)
     print("let's assign")
     for k in range(len(assignments)):
         i = assignments[k][0]
