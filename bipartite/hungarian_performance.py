@@ -1,6 +1,7 @@
 import sequential_hungarian as seq
 import multithreading_hungarian as as_threads
-import multiprocessing_hungarian as as_processes
+import multiprocessing_hungarian_with_manager as as_manager
+import multiprocessing_hungarian_ctype as as_processes
 import multiprocessing as mp
 
 import time
@@ -41,7 +42,9 @@ if __name__ == '__main__':
     G1 =[]
     G2 = []
     n = 200
-    p = 50
+    p_threads = 50
+    p_processes = 5
+
     #G = hm.huge_matrix(n,n)
 
     manager = mp.Manager()
@@ -63,32 +66,49 @@ if __name__ == '__main__':
     seq_time = (time.time() - start_time)
    
     
-    print("The number of threads ", p)
+    print("The number of threads ", p_threads)
     start_time = time.time()
-    a, performance_of_threads =  as_threads.parallel_hungarian(G, p)
+    a, performance_of_threads =  as_threads.parallel_hungarian(G, p_threads)
     parallel_time = (time.time() - start_time)
 
 
-    print("The number of processes ", p)
+    print("The number of processes (with manager) ", p_processes)
     start_time = time.time()
-    a, performance_of_processes =  as_processes.parallel_hungarian(arr, p)
+    a, performance_of_processes =  as_manager.parallel_hungarian(arr, p_processes)
     dist_time = (time.time() - start_time)
 
 
+
+    print("The number of processes (ctype) ", p_processes)
+    start_time = time.time()
+
+    a, performance_of_ctype =  as_processes.parallel_hungarian(G2, p_processes)
+    dist_ctype_time = (time.time() - start_time)
+
+    print("----- Time ---------") 
     print("--- Seq time is %s seconds ---" % seq_time)
     
     print("---  Multi-Threading time is %s seconds ---" % parallel_time)
 
-    print("--- Multi-processing is %s seconds ---" % dist_time)
+    print("--- Multi-processing (with manager) is %s seconds ---" % dist_time)
+
+    print("--- Multi-processing (with ctype) is %s seconds ---" % dist_ctype_time)
     
+    print("----- Performance ---------- ")
     if (dist_time != 0 ):
      print("--- Performace time in terms of multithreading is %s  ---" % (seq_time/parallel_time))
-     print("--- Performace time in terms of multiprocessing is %s  ---" % (seq_time/dist_time))
+     print("--- Performace time in terms of multiprocessing (with manager) is %s  ---" % (seq_time/dist_time))
+     print("--- Performace time in terms of multiprocessing (ctype) is %s  ---" % (seq_time/dist_ctype_time))
     else:
      print("--- The parallel version time is almose zero") 
 
+    print("-------- Performance details -------------") 
     for k in performance_of_seq:
-     print (k, " in threads ", performance_of_threads[k]," in processes ", performance_of_processes[k]," in seq " , performance_of_seq[k])
+     print (k, " in threads ", performance_of_threads[k])
+     print (k, " in processes (with manager)", performance_of_processes[k])
+     print (k," in ctype ", performance_of_ctype[k])
+     print (k," in seq ", performance_of_seq[k])
+
        
  
 
