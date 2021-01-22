@@ -156,7 +156,7 @@ def min_in_graph(G, horizental_lines, vertical_lines):
 def subtract_min_from_graph(G,min, horizental_lines, vertical_lines,zeros_of_rows,zeros_of_columns):
     
     for i in range(len(G)):
-        for j in range(len(G)):
+        for j in range(len(G[i])):
             if (G[i][j] > 0 and i not in horizental_lines and j not in vertical_lines):
                  x = G[i][j] - min
                  #print(G[i][j])
@@ -194,19 +194,27 @@ for i in range(len(G_original)):
 p = 2
 distribute_command = 'distribute_command'
 distrubute_minimum_in_columns_command = 'distrubute_minimum_in_columns'
-
+distribute_cover_lines_command = 'distribute_cover_lines_command'
+distribute_global_minimum_command = 'distribute_global_minimum_command'
 return_miminum_in_columns =  'return_miminum_in_columns'
 return_matrix =  'return_matrix'
+return_global_minimum = 'return_global_minimum'
 
 tags= {}
 tags[distribute_command] = 1
 tags[return_miminum_in_columns] = 2
 tags[distrubute_minimum_in_columns_command] = 3
 tags[return_matrix] = 4
+tags[distribute_cover_lines_command] = 5
+tags[return_global_minimum] = 6
+tags[distribute_global_minimum_command] = 7
 
 zeros_of_columns = len(G)*[] 
 zeros_of_rows = len(G)*[]
-    
+
+
+
+
 for i in range(len(G)):
     zeros_of_rows.append({})
     zeros_of_columns.append({})   
@@ -282,6 +290,20 @@ if rank == 0:
 
     subtract_min_from_columns(G1,minimum_in_columns,zeros_of_rows,zeros_of_columns)
     
+    
+    global_zeros_of_columns = len(G)*[] 
+    global_zeros_of_rows = len(G)*[] 
+
+    for i in range(len(zeros_of_rows)):
+        global_zeros_of_rows.append({})
+        for j in zeros_of_rows[i]:
+            global_zeros_of_rows[i][j] = 1
+
+    for i in range(len(zeros_of_columns)):
+        global_zeros_of_columns.append({})
+        for j in zeros_of_columns[i]:
+            global_zeros_of_columns[i][j] = 1
+
     for i in range(1,p):
         Gk,r,c = comm.recv(source=i, tag=tags[return_matrix])
         for k in range(len(Gk)):
@@ -293,7 +315,7 @@ if rank == 0:
             for cc in k:
                 index = (d*i) + count 
                 #print(c,index)
-                zeros_of_rows[index][cc] = 1
+                global_zeros_of_rows[index][cc] = 1
             count = count + 1
         
         count = 0
@@ -301,60 +323,109 @@ if rank == 0:
             for r in k:
                 #print(r)
                 index = (d*i) + r 
-                zeros_of_columns[count][index] = 1 
+                global_zeros_of_columns[count][index] = 1 
             count = count + 1
     #print("hello",G1,zeros_of_rows,zeros_of_columns)
 
     performance["subtract_min_from_columns"] = (time.time() - start_time)
 
     start_time = time.time()
-    r = []
-    c = []
-   #print(G1,zeros_of_rows,zeros_of_columns)
-    
-    for i in range(len(zeros_of_rows)):
-        r.append({})
-        for j in zeros_of_rows[i]:
-            r[i][j] = 1
-
-    for i in range(len(zeros_of_columns)):
-        c.append({})
-        for j in zeros_of_columns[i]:
-            c[i][j] = 1
-    
+   
     
     #print(zeros_of_rows,zeros_of_columns)  
-    number_of_lines,horizental_lines,vertical_lines = cover_zeros(r, c)
+    number_of_lines,horizental_lines,vertical_lines = cover_zeros(global_zeros_of_rows, global_zeros_of_columns)
     #print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
     #print("let's loop")
     while (number_of_lines != len(G1)):
-        min, row_index, column_index = min_in_graph(G1,horizental_lines,vertical_lines)
-        #print("G[ ",row_index," ][ ",column_index," ] = ",min)
-
-        match, zeros_of_rows,zeros_of_columns = subtract_min_from_graph(G1,min,horizental_lines,vertical_lines,zeros_of_rows,zeros_of_columns)
-
-        #print(match, zeros_of_rows,zeros_of_columns)        
-  
-
-        r = []
-        c = []
         
+        #print(G)
+        for i in range(1,p):  # O(p)
+            start = i*d
+            hk = [number-(i*d) for number in horizental_lines if  (start <= number)  and (number < start+d)]
+            
+            #print("there",hk,vertical_lines)
+        
+            comm.send((hk,vertical_lines,number_of_lines) , dest=i, tag=tags[distribute_cover_lines_command])
+        
+        G1 = G[0: d]
+        hlines = [number for number in horizental_lines if  (0 <= number)  and (number < d)]
+        min, row_index, column_index = min_in_graph(G1, hlines,vertical_lines)
+        for i in range(1,p):
+            returned_min = comm.recv(source=i, tag=tags[return_global_minimum])
+            #print("returned_min",returned_min, " min ",min)
+            if returned_min < min:
+                min = returned_min
+        
+        #print("G[ ",row_index," ][ ",column_index," ] = ",min)
+        for i in range(1,p):  # O(p)
+            comm.send(min, dest=i, tag=tags[distribute_global_minimum_command])
+        #print("asd ",hlines,vertical_lines)
+        G1, zeros_of_rows,zeros_of_columns = subtract_min_from_graph(G1,min,hlines,vertical_lines,zeros_of_rows,zeros_of_columns)
+        #print(G1, zeros_of_rows,zeros_of_columns)
+        
+        global_zeros_of_columns =len(G)*[] 
+        global_zeros_of_rows = len(G)*[] 
+
         for i in range(len(zeros_of_rows)):
-            r.append({})
+            global_zeros_of_rows.append({})
             for j in zeros_of_rows[i]:
-                r[i][j] = 1
+                global_zeros_of_rows[i][j] = 1
 
         for i in range(len(zeros_of_columns)):
-            c.append({})
+            global_zeros_of_columns.append({})
             for j in zeros_of_columns[i]:
+                global_zeros_of_columns[i][j] = 1
+
+        for i in range(1,p):
+            Gk,r,c = comm.recv(source=i, tag=tags[return_matrix])
+            for k in range(len(Gk)):
+                G1.append(Gk[k])
+            
+            count = 0 
+            for k in r:
+                #print(k)
+                for cc in k:
+                    index = (d*i) + count 
+                    #print(c,index)
+                    global_zeros_of_rows[index][cc] = 1
+                count = count + 1
+            
+            count = 0
+            for k in c:
+                for r in k:
+                    #print(r)
+                    index = (d*i) + r 
+                    global_zeros_of_columns[count][index] = 1 
+                count = count + 1
+            #print("hello",G1,zeros_of_rows,zeros_of_columns)
+
+
+        #print(G1,global_zeros_of_rows, global_zeros_of_columns)        
+
+        r = [] 
+        c = [] 
+
+        for i in range(len(global_zeros_of_rows)):
+            r.append({})
+            for j in global_zeros_of_rows[i]:
+                r[i][j] = 1
+
+        for i in range(len(global_zeros_of_columns)):
+            c.append({})
+            for j in global_zeros_of_columns[i]:
                 c[i][j] = 1
+
         #print(G1)      
         number_of_lines,horizental_lines,vertical_lines = cover_zeros(r, c)
         #print(G1)
         #print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
     
+    # let's stop all of the children by sending them the number of the covering lines
+    for i in range(1,p):  # O(p)
+            comm.send(([],[],number_of_lines) , dest=i, tag=tags[distribute_cover_lines_command])
+
     if (number_of_lines == len(G1)):
-        assignments = assign_tasks_to_workers(zeros_of_rows, zeros_of_columns)
+        assignments = assign_tasks_to_workers(global_zeros_of_rows, global_zeros_of_columns)
         #print("assignemt",assignments)    
 
     performance["rest"] = (time.time() - start_time)
@@ -389,7 +460,32 @@ else:
 
     subtract_min_from_columns(G,minimum_in_columns,zeros_of_rows,zeros_of_columns)
 
+   
     comm.send((G,zeros_of_rows,zeros_of_columns), dest=0, tag=tags[return_matrix])
 
-
+    hlines,vlines,number_of_lines  = comm.recv(source=0, tag=tags[distribute_cover_lines_command])
     
+    while(number_of_lines != len(G[0])):
+        min, row_index, column_index = min_in_graph(G,hlines,vlines)
+        
+        comm.send(min , dest=0, tag=tags[return_global_minimum])
+        #print("here", hlines, vlines)
+        
+
+        min = comm.recv(source=0, tag=tags[distribute_global_minimum_command])
+        
+        #print("here",min)
+        
+        G, zeros_of_rows,zeros_of_columns = subtract_min_from_graph(G,min,hlines,vlines,zeros_of_rows,zeros_of_columns)
+        
+         #print(G,zeros_of_rows,zeros_of_columns)
+
+        comm.send((G,zeros_of_rows,zeros_of_columns), dest=0, tag=tags[return_matrix])
+
+        hlines,vlines,number_of_lines = comm.recv(source=0, tag=tags[distribute_cover_lines_command])
+
+        if (number_of_lines == len(G[0])):
+            break
+        print(hlines,vlines,number_of_lines)
+
+        #mpirun -n 2 python mpi_hungarain.py 
