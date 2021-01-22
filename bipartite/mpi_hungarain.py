@@ -1,6 +1,8 @@
 from mpi4py import MPI
 import time
 import sys
+import sequential_hungarian as seq
+
 def get_min_from_row(G,row):
     #print(G[row])
     min = sys.maxsize
@@ -184,6 +186,10 @@ G_original = [[5,    8,	 47, 49,	33,	 34,  45,	34,	 54,    59],
          [3,	2,	 23, 54,	59,	 76,  65,	54,	 559,	5 ],
          [6,	54,	 45, 95,	59,	 87,  90,	237, 23,	232]]
 G = []
+
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+
 #G = hm.huge_matrix(200,200)
 for i in range(len(G_original)):
     G.append([])
@@ -191,7 +197,7 @@ for i in range(len(G_original)):
         G[i].append(G_original[i][j])
 
 
-p = 2
+p = comm.Get_size()
 distribute_command = 'distribute_command'
 distrubute_minimum_in_columns_command = 'distrubute_minimum_in_columns'
 distribute_cover_lines_command = 'distribute_cover_lines_command'
@@ -227,8 +233,7 @@ if len(G) % 2 != 0 :
     p = p +1
     #print(d)
 
-comm = MPI.COMM_WORLD
-rank = comm.Get_rank()
+
 
 if rank == 0:
     #print("launch ",rank )
@@ -325,7 +330,7 @@ if rank == 0:
                 index = (d*i) + r 
                 global_zeros_of_columns[count][index] = 1 
             count = count + 1
-    #print("hello",G1,zeros_of_rows,zeros_of_columns)
+    #print("hello",G1,global_zeros_of_rows,global_zeros_of_columns)
 
     performance["subtract_min_from_columns"] = (time.time() - start_time)
 
@@ -334,7 +339,7 @@ if rank == 0:
     
     #print(zeros_of_rows,zeros_of_columns)  
     number_of_lines,horizental_lines,vertical_lines = cover_zeros(global_zeros_of_rows, global_zeros_of_columns)
-    #print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
+    print("number of lines",number_of_lines, horizental_lines ,vertical_lines )
     #print("let's loop")
     while (number_of_lines != len(G1)):
         
@@ -342,8 +347,9 @@ if rank == 0:
         for i in range(1,p):  # O(p)
             start = i*d
             hk = [number-(i*d) for number in horizental_lines if  (start <= number)  and (number < start+d)]
-            
-            #print("there",hk,vertical_lines)
+            if i + 1 == p:
+                hk = [number-(i*d) for number in horizental_lines if  (start <= number)]
+            #print("there",hk,vertical_lines,start,start+d)
         
             comm.send((hk,vertical_lines,number_of_lines) , dest=i, tag=tags[distribute_cover_lines_command])
         
@@ -438,6 +444,26 @@ if rank == 0:
     print("--- %s seconds ---" % (time.time() - start_time))
     for k in performance:
         print (k, performance[k])
+
+    G2 =[]
+    #G = hm.huge_matrix(200,200)
+    #for i in range(len(G)):
+     #   G2.append([])
+      #  for j in range(len(G[i])):
+       #     G2[i].append(G[i][j])
+    #print("Matrix was copied")
+    
+    #assignments2,performance2 = seq.sequential_hungarain(G2)  
+
+    #for k in range(len(assignments2)):
+     #   i = assignments2[k][0]
+      #  j = assignments2[k][1]
+       # print("worker", i, " has task  ", j, " whose weight is  ", G[i][j])
+    #print("--- %s seconds ---" % (time.time() - start_time))
+    #for k in performance2:
+     #   print (k, performance2[k])
+
+    
 else:
     #print("launch ",rank )
     G = comm.recv(source=0, tag=tags[distribute_command])
@@ -486,6 +512,6 @@ else:
 
         if (number_of_lines == len(G[0])):
             break
-        print(hlines,vlines,number_of_lines)
+        #print(hlines,vlines,number_of_lines)
 
         #mpirun -n 2 python mpi_hungarain.py 
