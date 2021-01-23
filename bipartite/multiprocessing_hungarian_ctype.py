@@ -206,7 +206,7 @@ def parallel_hungarian(G,p):
     X_shape = (len(G),len(G))
     X = mp.RawArray('d', X_shape[0] * X_shape[1])
     X_np = np.frombuffer(X).reshape(X_shape)
-
+    
     # Copy data to our shared array.
     np.copyto(X_np, data)
 

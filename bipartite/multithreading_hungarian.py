@@ -120,10 +120,10 @@ def cover_zeros(zeros_of_rows_p, zeros_of_columns_p):
         number_of_lines = number_of_lines + 1   
     return number_of_lines , horizental_lines, vertical_lines
     
-def assign_tasks_to_workers(zeros_of_rows, zeros_of_columns):
+def assign_tasks_to_workers(zeros_of_rows_p, zeros_of_columns_p):
     #print(zeros_of_rows,zeros_of_columns)
-    zeros_of_rows_p = zeros_of_rows.copy()
-    zeros_of_columns_p = zeros_of_columns.copy()
+    #zeros_of_rows_p = zeros_of_rows.copy()
+    #zeros_of_columns_p = zeros_of_columns.copy()
 
     assignments = []
    
